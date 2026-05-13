@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор стеллажей</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117; --surface: #181b23; --surface2: #1e2230;
+    --border: #2a2f42; --accent: #f5a623; --text: #e8eaf0;
+    --muted: #6b7194; --green: #4caf7d; --red: #e05252;
+    --blue: #4a9eff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; min-height: 100vh; padding: 32px 16px 60px; }
+  .header { text-align: center; margin-bottom: 36px; }
+  .header h1 { font-family: 'Unbounded', sans-serif; font-size: clamp(1.3rem,4vw,2rem); color: var(--accent); letter-spacing: -0.02em; }
+  .header p { color: var(--muted); font-size: 0.78rem; margin-top: 8px; }
+
+  .main { max-width: 1000px; margin: 0 auto; }
+
+  /* ── Общие параметры ── */
+  .global-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+  .panel-title { font-family: 'Unbounded', sans-serif; font-size: 0.7rem; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); grid-column: 1/-1; }
+
+  .field label { display: block; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; padding: 9px 12px; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .field input::placeholder { color: var(--muted); }
+  .hint { font-size: 0.63rem; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  select option { background: #1e2230; }
+
+  /* ── Ряды ── */
+  .rows-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .rows-header h2 { font-family: 'Unbounded', sans-serif; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  .btn-add { background: var(--accent); color: #000; border: none; border-radius: 7px; font-family: 'Unbounded', sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; padding: 9px 16px; cursor: pointer; transition: opacity 0.15s; }
+  .btn-add:hover { opacity: 0.85; }
+
+  .row-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 14px; position: relative; }
+  .row-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .row-badge { background: var(--accent); color: #000; font-family: 'Unbounded', sans-serif; font-size: 0.65rem; font-weight: 700; border-radius: 5px; padding: 3px 9px; flex-shrink: 0; }
+  .row-name-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; padding: 6px 10px; outline: none; flex: 1; transition: border-color 0.2s; }
+  .row-name-input:focus { border-color: var(--accent); }
+  .btn-remove { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.75rem; padding: 5px 10px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+  .btn-remove:hover { border-color: var(--red); color: var(--red); }
+
+  .row-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+
+  .sec-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .sec-block-title { font-size: 0.63rem; color: var(--blue); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ── Пары ── */
+  .pairs-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; }
+  .pair-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 12px; }
+  @media (max-width: 600px) { .pair-row { grid-template-columns: 1fr 1fr; } }
+  .btn-add-pair { background: transparent; border: 1px dashed var(--border); color: var(--muted); border-radius: 7px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 9px 16px; cursor: pointer; width: 100%; margin-top: 4px; transition: all 0.15s; }
+  .btn-add-pair:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-remove-pair { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.75rem; padding: 9px 10px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .btn-remove-pair:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Аксессуары ── */
+  .acc-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .toggle-row { display: flex; align-items: center; gap: 12px; }
+  .toggle-label { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; flex: 1; }
+  .toggle { position: relative; width: 42px; height: 22px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: var(--border); border-radius: 22px; cursor: pointer; transition: background 0.2s; }
+  .slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: var(--muted); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+  .toggle input:checked + .slider { background: var(--accent); }
+  .toggle input:checked + .slider::before { transform: translateX(20px); background: #fff; }
+
+  /* ── Результат ── */
+  .result-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .result-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 14px; transition: border-color 0.2s; }
+  .result-item:hover { border-color: var(--accent); }
+  .result-item .qty { font-family: 'Unbounded', sans-serif; font-size: 1.5rem; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .result-item .name { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 3px; }
+  .result-item .spec { font-size: 0.74rem; color: var(--text); line-height: 1.4; }
+  .result-item .price-line { font-size: 0.68rem; color: var(--green); margin-top: 8px; }
+  .total-block { background: var(--surface2); border: 2px solid var(--accent); border-radius: 10px; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .total-block .lbl { font-family: 'Unbounded', sans-serif; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .total-block .amount { font-family: 'Unbounded', sans-serif; font-size: 1.9rem; color: var(--accent); }
+  .total-block .amount span { font-size: 0.95rem; color: var(--muted); margin-left: 6px; }
+  .warning { background: rgba(224,82,82,0.1); border: 1px solid var(--red); border-radius: 8px; padding: 11px 14px; font-size: 0.76rem; color: var(--red); margin-bottom: 14px; display: none; line-height: 1.6; }
+  .warning.visible { display: block; }
+  .divider { height: 1px; background: var(--border); margin: 14px 0; grid-column: 1/-1; }
+  .note-block { font-size: 0.68rem; color: var(--muted); line-height: 1.9; grid-column: 1/-1; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Калькулятор стеллажей</h1>
+  <p>Тяжёлый паллетный стеллаж · EXW цены поставщика</p>
+</div>
+
+<div class="main">
+
+  <!-- ОБЩИЕ ПАРАМЕТРЫ -->
+  <div class="global-panel">
+    <div class="panel-title">Общие параметры</div>
+    <div class="field">
+      <label>Макс. вес на поддон (кг)</label>
+      <input type="number" id="weight" placeholder="например 1500" min="1" oninput="calc()">
+    </div>
+    <div class="field">
+      <label>Высота стеллажа (мм)</label>
+      <input type="number" id="height" placeholder="например 5000" min="1" oninput="calc()">
+      <div class="hint">3000 / 4050 / 5025 / 6000 / 7050 / 8025</div>
+    </div>
+    <div class="field">
+      <label>Количество ярусов</label>
+      <input type="number" id="tiers" placeholder="например 3" min="1" max="10" oninput="calc()">
+      <div class="hint">Полок = ярусов + 1</div>
+    </div>
+    <div class="divider"></div>
+    <div class="note-block">
+      <b style="color:var(--text)">Стойка</b> = пара стоек ш.1000 мм &nbsp;·&nbsp;
+      <b style="color:var(--text)">Балок</b> = полок × секций × 2 &nbsp;·&nbsp;
+      <b style="color:var(--text)">Уголок</b> = 2 шт/стойку &nbsp;·&nbsp;
+      <b style="color:var(--text)">Барьер</b> = 2 шт/ряд
+    </div>
+  </div>
+
+  <!-- РЯДЫ -->
+  <div class="rows-header">
+    <h2>Ряды стеллажей</h2>
+    <button class="btn-add" onclick="addRow()">+ Добавить ряд</button>
+  </div>
+  <div id="rows-container"></div>
+
+  <!-- ПАРЫ -->
+  <div class="pairs-panel">
+    <div class="panel-title">Ряды спина к спине (пары)</div>
+    <div id="pairs-container"></div>
+    <button class="btn-add-pair" onclick="addPair()">+ Добавить пару</button>
+    <div class="hint" style="margin-top:10px">Ряды одной пары идут спина к спине. Распорки считаются на стойки пары.</div>
+  </div>
+
+  <!-- АКСЕССУАРЫ -->
+  <div class="acc-panel">
+    <div class="panel-title">Аксессуары</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Защитные барьеры</span>
+      <label class="toggle"><input type="checkbox" id="add_barriers" checked onchange="calc()"><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Уголки на ножки</span>
+      <label class="toggle"><input type="checkbox" id="add_corners" checked onchange="calc()"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <!-- РЕЗУЛЬТАТ -->
+  <div class="result-panel">
+    <div class="panel-title">Результат расчёта</div>
+    <div class="warning" id="warning"></div>
+    <div class="result-grid" id="result_grid">
+      <div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Заполните параметры и добавьте ряды</div>
+    </div>
+    <div class="total-block" id="total_block" style="display:none">
+      <div>
+        <div class="lbl">Итого EXW</div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:6px;line-height:1.7" id="total_note"></div>
+      </div>
+      <div class="amount" id="total_amount">— <span>USD</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== ДАННЫЕ =====
+const beams1900 = [
+  { spec: 'BD10050-1.5', load: 1300, price: 6.6243 },
+  { spec: 'BH10050-1.5', load: 1700, price: 7.5118 },
+  { spec: 'BD12050×1.5', load: 2000, price: 7.2895 },
+  { spec: 'BH12050-1.5', load: 2500, price: 8.1786 },
+];
+const beams2800 = [
+  { spec: 'BD10050-1.5', load: 400,  price: 9.3549 },
+  { spec: 'BH10050-1.5', load: 520,  price: 10.6658 },
+  { spec: 'BD12050×1.5', load: 640,  price: 10.3381 },
+  { spec: 'BH12050-1.5', load: 800,  price: 11.6490 },
+  { spec: 'BH14050-1.5', load: 1150, price: 12.9583 },
+];
+const COLUMNS = [
+  { h: 3000, p90: 25.9571, p100: 28.3826 },
+  { h: 4050, p90: 33.3083, p100: 36.1215 },
+  { h: 5025, p90: 41.0310, p100: 44.4689 },
+  { h: 6000, p90: 48.7164, p100: 52.7335 },
+  { h: 7050, p90: 56.0237, p100: 60.4724 },
+  { h: 8025, p90: 63.7903, p100: 68.8198 },
+];
+const CORNER_PRICE  = 3.1524;
+const BARRIER_PRICE = 11.5857;
+const BRACE_PRICE   = 1.1633;
+
+let rowIdCounter = 0;
+let pairIdCounter = 0;
+let rows = [];   // [{id, name, sec1900, sec2800}]
+let pairs = [];  // [{id, rowA, rowB, bracesPerCol}]
+
+// ===== РЯДЫ =====
+function addRow() {
+  rowIdCounter++;
+  const id = rowIdCounter;
+  rows.push({ id, name: `Ряд ${id}`, sec1900: 0, sec2800: 0 });
+  renderRows();
+  updatePairSelects();
+  calc();
+}
+
+function removeRow(id) {
+  rows = rows.filter(r => r.id !== id);
+  pairs = pairs.filter(p => p.rowA !== id && p.rowB !== id);
+  renderRows();
+  renderPairs();
+  updatePairSelects();
+  calc();
+}
+
+function renderRows() {
+  const container = document.getElementById('rows-container');
+  if (rows.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;margin-bottom:16px;padding:16px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center">Нажмите «+ Добавить ряд» чтобы начать</div>';
+    return;
+  }
+  container.innerHTML = rows.map((r, idx) => `
+    <div class="row-card" id="row-card-${r.id}">
+      <div class="row-card-header">
+        <div class="row-badge">#${idx+1}</div>
+        <input class="row-name-input" value="${r.name}" placeholder="Название ряда"
+          oninput="updateRowName(${r.id}, this.value)">
+        <button class="btn-remove" onclick="removeRow(${r.id})">✕ Удалить</button>
+      </div>
+      <div class="row-fields">
+        <div class="sec-block">
+          <div class="sec-block-title">Балки L=1900 (2 поддона)</div>
+          <div class="field" style="margin:0">
+            <label>Секций</label>
+            <input type="number" min="0" value="${r.sec1900}" placeholder="0"
+              oninput="updateRow(${r.id},'sec1900',this.value)">
+          </div>
+        </div>
+        <div class="sec-block">
+          <div class="sec-block-title">Балки L=2800 (3 поддона)</div>
+          <div class="field" style="margin:0">
+            <label>Секций</label>
+            <input type="number" min="0" value="${r.sec2800}" placeholder="0"
+              oninput="updateRow(${r.id},'sec2800',this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateRowName(id, val) {
+  const r = rows.find(r => r.id === id);
+  if (r) r.name = val;
+  updatePairSelects();
+}
+
+function updateRow(id, field, val) {
+  const r = rows.find(r => r.id === id);
+  if (r) r[field] = parseInt(val) || 0;
+  calc();
+}
+
+// ===== ПАРЫ =====
+function addPair() {
+  pairIdCounter++;
+  pairs.push({ id: pairIdCounter, rowA: '', rowB: '', bracesPerCol: 2 });
+  renderPairs();
+}
+
+function removePair(id) {
+  pairs = pairs.filter(p => p.id !== id);
+  renderPairs();
+  calc();
+}
+
+function renderPairs() {
+  const container = document.getElementById('pairs-container');
+  if (pairs.length === 0) { container.innerHTML = ''; return; }
+  const opts = rows.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  container.innerHTML = pairs.map(p => `
+    <div class="pair-row" id="pair-${p.id}">
+      <div class="field" style="margin:0">
+        <label>Ряд А</label>
+        <select onchange="updatePair(${p.id},'rowA',this.value)">
+          <option value="">— выбрать —</option>${opts}
+        </select>
+      </div>
+      <div class="field" style="margin:0">
+        <label>Ряд Б</label>
+        <select onchange="updatePair(${p.id},'rowB',this.value)">
+          <option value="">— выбрать —</option>${opts}
+        </select>
+      </div>
+      <div class="field" style="margin:0">
+        <label>Распорок на стойку</label>
+        <input type="number" min="1" max="10" value="${p.bracesPerCol}"
+          oninput="updatePair(${p.id},'bracesPerCol',this.value)">
+      </div>
+      <button class="btn-remove-pair" onclick="removePair(${p.id})">✕</button>
+    </div>
+  `).join('');
+  // Восстановить выбранные значения
+  pairs.forEach(p => {
+    const el = document.getElementById(`pair-${p.id}`);
+    if (!el) return;
+    const sels = el.querySelectorAll('select');
+    if (p.rowA) sels[0].value = p.rowA;
+    if (p.rowB) sels[1].value = p.rowB;
+  });
+}
+
+function updatePair(id, field, val) {
+  const p = pairs.find(p => p.id === id);
+  if (p) p[field] = field === 'bracesPerCol' ? (parseInt(val) || 2) : parseInt(val);
+  calc();
+}
+
+function updatePairSelects() {
+  renderPairs();
+  calc();
+}
+
+// ===== РАСЧЁТ =====
+function calc() {
+  const weight = parseFloat(document.getElementById('weight').value);
+  const height = parseFloat(document.getElementById('height').value);
+  const tiers  = parseInt(document.getElementById('tiers').value);
+  const addBarriers = document.getElementById('add_barriers').checked;
+  const addCorners  = document.getElementById('add_corners').checked;
+
+  const grid   = document.getElementById('result_grid');
+  const warn   = document.getElementById('warning');
+  const totBlk = document.getElementById('total_block');
+  warn.classList.remove('visible'); warn.innerHTML = '';
+
+  if (!weight || !height || !tiers || isNaN(weight) || isNaN(height) || isNaN(tiers) || rows.length === 0) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Заполните общие параметры и добавьте ряды</div>';
+    totBlk.style.display = 'none'; return;
+  }
+
+  const warnings = [];
+  const shelves = tiers + 1;
+
+  // Подбор стойки
+  const col = COLUMNS.find(c => c.h >= height);
+  if (!col) {
+    warn.innerHTML = `Высота ${height} мм превышает максимум 8025 мм.`;
+    warn.classList.add('visible'); grid.innerHTML = ''; totBlk.style.display = 'none'; return;
+  }
+
+  // Подбор балок
+  const beam1 = beams1900.find(b => b.load >= weight);
+  const beam2 = beams2800.find(b => b.load >= weight);
+  if (!beam1) warnings.push(`⚠ L=1900: нет балки ≥ ${weight} кг/поддон. Макс: ${beams1900[beams1900.length-1].load} кг.`);
+  if (!beam2) warnings.push(`⚠ L=2800: нет балки ≥ ${weight} кг/поддон. Макс: ${beams2800[beams2800.length-1].load} кг.`);
+
+  // Считаем по каждому ряду
+  let totalColumns = 0, totalB1900 = 0, totalB2800 = 0;
+
+  rows.forEach(r => {
+    const secs = (r.sec1900 || 0) + (r.sec2800 || 0);
+    if (secs < 1) return;
+    totalColumns += secs + 1;
+    totalB1900   += (r.sec1900 || 0) * shelves * 2;
+    totalB2800   += (r.sec2800 || 0) * shelves * 2;
+  });
+
+  // Тип стойки: берём по максимальной нагрузке среди всех рядов
+  const maxPallets = rows.reduce((m, r) => {
+    const p = Math.max(r.sec1900 > 0 ? 2 : 0, r.sec2800 > 0 ? 3 : 0);
+    return Math.max(m, p);
+  }, 0);
+  const loadPerCol = shelves * weight * maxPallets;
+  let colSpec, colPrice;
+  if (loadPerCol <= 8000)       { colSpec = 'Стойка 90×70-2.0мм (до 8000 кг)';  colPrice = col.p90; }
+  else if (loadPerCol <= 11000) { colSpec = 'Стойка 100×70-2.0мм (до 11000 кг)'; colPrice = col.p100; }
+  else { warnings.push(`⚠ Нагрузка на стойку ~${Math.round(loadPerCol)} кг > 11000 кг — уточните у поставщика.`); colSpec = 'Стойка 100×70-2.0мм (до 11000 кг)'; colPrice = col.p100; }
+
+  // Аксессуары
+  const numCorners  = addCorners  ? totalColumns * 2 : 0;
+  const numBarriers = addBarriers ? rows.filter(r => (r.sec1900+r.sec2800) > 0).length * 2 : 0;
+
+  // Распорки по парам
+  let totalBraces = 0;
+  const bracesDetail = [];
+  pairs.forEach(p => {
+    const rA = rows.find(r => r.id === p.rowA);
+    const rB = rows.find(r => r.id === p.rowB);
+    if (!rA || !rB || p.rowA === p.rowB) return;
+    // Стойки пары = стойки ряда А + стойки ряда Б (у них общие стойки если спина к спине)
+    // Распорки ставятся между стойками: кол-во стоек = max(secsA, secsB) + 1
+    const secsA = (rA.sec1900||0) + (rA.sec2800||0);
+    const secsB = (rB.sec1900||0) + (rB.sec2800||0);
+    const pairCols = Math.max(secsA, secsB) + 1;
+    const n = pairCols * p.bracesPerCol;
+    totalBraces += n;
+    bracesDetail.push(`${rA.name}+${rB.name}: ${pairCols} стоек × ${p.bracesPerCol} = ${n} шт.`);
+  });
+
+  // Стоимости
+  const costCols     = totalColumns * colPrice;
+  const costB1900    = totalB1900 * (beam1 ? beam1.price : 0);
+  const costB2800    = totalB2800 * (beam2 ? beam2.price : 0);
+  const costCorners  = numCorners  * CORNER_PRICE;
+  const costBarriers = numBarriers * BARRIER_PRICE;
+  const costBraces   = totalBraces * BRACE_PRICE;
+  const total = costCols + costB1900 + costB2800 + costCorners + costBarriers + costBraces;
+
+  if (warnings.length) { warn.innerHTML = warnings.join('<br>'); warn.classList.add('visible'); }
+
+  const fmt  = n => n.toFixed(2).replace('.', ',');
+  const fmtT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+  const items = [];
+
+  if (totalColumns > 0) items.push({
+    qty: totalColumns, name: 'Стойки',
+    spec: `${colSpec}<br>H=${col.h} мм`,
+    price: costCols, up: colPrice
+  });
+  if (totalB1900 > 0 && beam1) items.push({
+    qty: totalB1900, name: 'Балки L=1900',
+    spec: `${beam1.spec}<br>до ${beam1.load} кг/поддон`,
+    price: costB1900, up: beam1.price
+  });
+  if (totalB2800 > 0 && beam2) items.push({
+    qty: totalB2800, name: 'Балки L=2800',
+    spec: `${beam2.spec}<br>до ${beam2.load} кг/поддон`,
+    price: costB2800, up: beam2.price
+  });
+  if (addCorners && numCorners > 0) items.push({
+    qty: numCorners, name: 'Уголки L-образные',
+    spec: `H=300, t=5.0<br>${totalColumns} стоек × 2`,
+    price: costCorners, up: CORNER_PRICE
+  });
+  if (addBarriers && numBarriers > 0) items.push({
+    qty: numBarriers, name: 'Защитные барьеры',
+    spec: `H500×L1000, φ76-2.5<br>${rows.filter(r=>(r.sec1900+r.sec2800)>0).length} рядов × 2`,
+    price: costBarriers, up: BARRIER_PRICE
+  });
+  if (totalBraces > 0) items.push({
+    qty: totalBraces, name: 'Распорки',
+    spec: `L=300, F5030-1.5<br>${bracesDetail.join('<br>')}`,
+    price: costBraces, up: BRACE_PRICE
+  });
+
+  if (items.length === 0) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Добавьте секции в ряды</div>';
+    totBlk.style.display = 'none'; return;
+  }
+
+  grid.innerHTML = items.map(it => `
+    <div class="result-item">
+      <div class="qty">${it.qty} <span style="font-size:0.82rem">шт.</span></div>
+      <div class="name">${it.name}</div>
+      <div class="spec">${it.spec}</div>
+      <div class="price-line">${fmt(it.up)} × ${it.qty} = ${fmt(it.price)} USD</div>
+    </div>`).join('');
+
+  const rowsSummary = rows.filter(r=>(r.sec1900+r.sec2800)>0)
+    .map(r => `${r.name}: ${r.sec1900||0}×L1900 + ${r.sec2800||0}×L2800`).join(' · ');
+
+  document.getElementById('total_amount').innerHTML = `${fmtT(total)} <span>USD EXW</span>`;
+  document.getElementById('total_note').innerHTML =
+    `${rows.length} рядов · ${tiers} яр. (${shelves} полок) · H=${col.h} мм<br>${rowsSummary}`;
+  totBlk.style.display = 'flex';
+}
+
+// Инициализация: добавить первый ряд
+addRow();
+</script>
+</body>
+</html>
