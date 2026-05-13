@@ -112,7 +112,7 @@
     <div class="field">
       <label>Количество ярусов</label>
       <input type="number" id="tiers" placeholder="например 3" min="1" max="10" oninput="calc()">
-      <div class="hint">Полок = ярусов + 1</div>
+      <div class="hint">1 ярус → 2 полки · 2+ ярусов → полок = ярусов</div>
     </div>
     <div class="divider"></div>
     <div class="note-block">
@@ -347,7 +347,7 @@ function calc() {
   }
 
   const warnings = [];
-  const shelves = tiers + 1;
+  const shelves = tiers === 1 ? 2 : tiers;
 
   // Подбор стойки
   const col = COLUMNS.find(c => c.h >= height);
