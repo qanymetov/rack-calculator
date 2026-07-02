@@ -15,12 +15,19 @@
     --blue: #4a9eff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; min-height: 100vh; padding: 32px 16px 60px; }
+  html { overflow-x: hidden; }
+  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; min-height: 100vh; padding: 32px 16px 60px; overflow-x: hidden; }
   .header { text-align: center; margin-bottom: 24px; }
-  .header h1 { font-family: 'Unbounded', sans-serif; font-size: clamp(1.3rem,4vw,2rem); color: var(--accent); letter-spacing: -0.02em; }
+  .header h1 { font-family: 'Unbounded', sans-serif; font-size: clamp(1.2rem,4.5vw,2rem); color: var(--accent); letter-spacing: -0.02em; }
   .header p { color: var(--muted); font-size: 0.78rem; margin-top: 8px; }
 
   .main { max-width: 1000px; margin: 0 auto; }
+
+  /* ── Переключатель языка ── */
+  .lang-switch { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
+  .lang-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 600; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: all 0.15s; }
+  .lang-btn:hover { color: var(--text); }
+  .lang-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
   /* ── Вкладки ── */
   .tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 28px; flex-wrap: wrap; }
@@ -40,16 +47,16 @@
   select option { background: #1e2230; }
 
   /* ── Ряды ── */
-  .rows-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .rows-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
   .rows-header h2 { font-family: 'Unbounded', sans-serif; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
   .btn-add { background: var(--accent); color: #000; border: none; border-radius: 7px; font-family: 'Unbounded', sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; padding: 9px 16px; cursor: pointer; transition: opacity 0.15s; }
   .btn-add:hover { opacity: 0.85; }
   .btn-add:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .row-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 14px; position: relative; }
-  .row-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .row-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
   .row-badge { background: var(--accent); color: #000; font-family: 'Unbounded', sans-serif; font-size: 0.65rem; font-weight: 700; border-radius: 5px; padding: 3px 9px; flex-shrink: 0; }
-  .row-name-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; padding: 6px 10px; outline: none; flex: 1; transition: border-color 0.2s; }
+  .row-name-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; padding: 6px 10px; outline: none; flex: 1; min-width: 120px; transition: border-color 0.2s; }
   .row-name-input:focus { border-color: var(--accent); }
   .btn-remove { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.75rem; padding: 5px 10px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
   .btn-remove:hover { border-color: var(--red); color: var(--red); }
@@ -63,6 +70,7 @@
   .pairs-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; }
   .pair-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 12px; }
   @media (max-width: 600px) { .pair-row { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 420px) { .pair-row { grid-template-columns: 1fr; } }
   .btn-add-pair { background: transparent; border: 1px dashed var(--border); color: var(--muted); border-radius: 7px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 9px 16px; cursor: pointer; width: 100%; margin-top: 4px; transition: all 0.15s; }
   .btn-add-pair:hover { border-color: var(--accent); color: var(--accent); }
   .btn-remove-pair { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.75rem; padding: 9px 10px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
@@ -71,8 +79,8 @@
   /* ── Аксессуары ── */
   .acc-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 600px) { .acc-panel { grid-template-columns: 1fr; } }
-  .toggle-row { display: flex; align-items: center; gap: 10px; }
-  .toggle-label { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; flex: 1; }
+  .toggle-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .toggle-label { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; flex: 1; min-width: 110px; }
   .qty-input { width: 56px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; padding: 6px 8px; text-align: center; }
   .toggle { position: relative; width: 42px; height: 22px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
@@ -94,7 +102,7 @@
   .result-item .price-line { font-size: 0.68rem; color: var(--green); margin-top: 8px; }
   .total-block { background: var(--surface2); border: 2px solid var(--accent); border-radius: 10px; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
   .total-block .lbl { font-family: 'Unbounded', sans-serif; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
-  .total-block .amount { font-family: 'Unbounded', sans-serif; font-size: 1.9rem; color: var(--accent); }
+  .total-block .amount { font-family: 'Unbounded', sans-serif; font-size: 1.7rem; color: var(--accent); word-break: break-word; }
   .total-block .amount span { font-size: 0.95rem; color: var(--muted); margin-left: 6px; }
   .warning { background: rgba(224,82,82,0.1); border: 1px solid var(--red); border-radius: 8px; padding: 11px 14px; font-size: 0.76rem; color: var(--red); margin-bottom: 14px; display: none; line-height: 1.6; }
   .warning.visible { display: block; }
@@ -113,12 +121,28 @@
   .btn-danger-outline { background: none; border: 1px solid var(--red); color: var(--red); border-radius: 7px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 10px 16px; cursor: pointer; transition: all 0.15s; }
   .btn-danger-outline:hover { background: rgba(224,82,82,0.12); }
   .markup-block { background: rgba(245,166,35,0.08); border: 1px solid var(--accent); border-radius: 10px; padding: 16px 18px; margin-top: 20px; }
+
+  /* ── Адаптивность для маленьких экранов ── */
+  @media (max-width: 480px) {
+    body { padding: 20px 8px 50px; }
+    .global-panel, .settings-panel, .pairs-panel, .acc-panel, .result-panel, .row-card { padding: 14px; }
+    .global-panel, .row-fields { grid-template-columns: 1fr; }
+    .tabs { gap: 6px; }
+    .tab-btn { padding: 9px 14px; font-size: 0.6rem; }
+    .row-card-header { gap: 8px; }
+    .total-block { padding: 14px 16px; }
+    .total-block .amount { font-size: 1.4rem; }
+  }
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>Калькулятор стеллажей</h1>
-  <p>Тяжёлый паллетный стеллаж · EXW цены поставщика</p>
+  <div class="lang-switch">
+    <button class="lang-btn" id="lang-btn-ru" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" id="lang-btn-zh" onclick="setLang('zh')">中文</button>
+  </div>
+  <h1 id="i18n-title">Калькулятор стеллажей</h1>
+  <p id="i18n-subtitle">Тяжёлый паллетный стеллаж · EXW цены поставщика</p>
 </div>
 
 <div class="main">
@@ -133,73 +157,69 @@
 
     <!-- ОБЩИЕ ПАРАМЕТРЫ -->
     <div class="global-panel">
-      <div class="panel-title">Общие параметры</div>
+      <div class="panel-title" id="i18n-general-title">Общие параметры</div>
       <div class="field">
-        <label>Макс. вес на поддон (кг)</label>
+        <label id="i18n-weight-label">Макс. вес на поддон (кг)</label>
         <input type="number" id="weight" placeholder="например 1500" min="1" oninput="calc()">
       </div>
       <div class="field">
-        <label>Высота стеллажа (мм)</label>
+        <label id="i18n-height-label">Высота стеллажа (мм)</label>
         <input type="number" id="height" placeholder="например 5000" min="1" oninput="calc()">
         <div class="hint" id="height-hint">3000 / 4050 / 5025 / 6000 / 7050 / 8025</div>
       </div>
       <div class="field">
-        <label>Количество ярусов</label>
+        <label id="i18n-tiers-label">Количество ярусов</label>
         <input type="number" id="tiers" placeholder="например 3" min="1" max="10" oninput="calc()">
-        <div class="hint">1 ярус → 2 полки · 2+ ярусов → полок = ярусов</div>
+        <div class="hint" id="i18n-tiers-hint">1 ярус → 2 полки · 2+ ярусов → полок = ярусов</div>
       </div>
       <div class="divider"></div>
-      <div class="note-block">
-        <b style="color:var(--text)">Стойка</b> = пара стоек ш.1000 мм &nbsp;·&nbsp;
-        <b style="color:var(--text)">Балок</b> = полок × секций × 2 &nbsp;·&nbsp;
-        <b style="color:var(--text)">Уголок</b> и <b style="color:var(--text)">Барьер</b> — количество задаётся в блоке «Аксессуары» ниже
-      </div>
+      <div class="note-block" id="note-block"></div>
     </div>
 
     <!-- РЯДЫ -->
     <div class="rows-header">
-      <h2>Ряды стеллажей</h2>
-      <button class="btn-add" onclick="addRow()">+ Добавить ряд</button>
+      <h2 id="i18n-rows-title">Ряды стеллажей</h2>
+      <button class="btn-add" id="btn-add-row" onclick="addRow()">+ Добавить ряд</button>
     </div>
     <div id="rows-container"></div>
 
     <!-- ПАРЫ -->
     <div class="pairs-panel">
-      <div class="panel-title">Ряды спина к спине (пары)</div>
+      <div class="panel-title" id="i18n-pairs-title">Ряды спина к спине (пары)</div>
       <div id="pairs-container"></div>
-      <button class="btn-add-pair" onclick="addPair()">+ Добавить пару</button>
-      <div class="hint" style="margin-top:10px">Ряды одной пары идут спина к спине. Распорки считаются на стойки пары.</div>
+      <button class="btn-add-pair" id="btn-add-pair" onclick="addPair()">+ Добавить пару</button>
+      <div class="hint" id="i18n-pairs-hint" style="margin-top:10px">Ряды одной пары идут спина к спине. Распорки считаются на стойки пары.</div>
     </div>
 
     <!-- АКСЕССУАРЫ -->
     <div class="acc-panel">
-      <div class="panel-title">Аксессуары</div>
+      <div class="panel-title" id="i18n-acc-title">Аксессуары</div>
       <div class="toggle-row">
-        <span class="toggle-label">Защитные барьеры</span>
+        <span class="toggle-label" id="i18n-barriers-label">Защитные барьеры</span>
         <input type="number" class="qty-input" id="barriers_per_row" value="2" min="0" oninput="calc()">
         <label class="toggle"><input type="checkbox" id="add_barriers" checked onchange="calc()"><span class="slider"></span></label>
       </div>
       <div class="toggle-row">
-        <span class="toggle-label">Уголки на ножки</span>
+        <span class="toggle-label" id="i18n-corners-label">Уголки на ножки</span>
         <input type="number" class="qty-input" id="corners_per_col" value="2" min="0" oninput="calc()">
         <label class="toggle"><input type="checkbox" id="add_corners" checked onchange="calc()"><span class="slider"></span></label>
       </div>
-      <div class="hint" style="grid-column:1/-1">Число рядом с переключателем — количество штук на 1 ряд (барьеры) / на 1 стойку (уголки). По умолчанию: 2 и 2 — как раньше.</div>
+      <div class="hint" id="i18n-acc-hint" style="grid-column:1/-1">Число рядом с переключателем — количество штук на 1 ряд (барьеры) / на 1 стойку (уголки). По умолчанию: 2 и 2 — как раньше.</div>
     </div>
 
     <!-- РЕЗУЛЬТАТ -->
     <div class="result-panel">
       <div class="result-header">
-        <div class="panel-title">Результат расчёта</div>
+        <div class="panel-title" id="i18n-result-title">Результат расчёта</div>
         <button class="btn-add" id="btn-pdf" onclick="downloadPDF()" disabled>⬇ Скачать КП (PDF)</button>
       </div>
       <div class="warning" id="warning"></div>
       <div class="result-grid" id="result_grid">
-        <div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Заполните параметры и добавьте ряды</div>
+        <div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1" id="i18n-fill-hint">Заполните параметры и добавьте ряды</div>
       </div>
       <div class="total-block" id="total_block" style="display:none">
         <div>
-          <div class="lbl">Итого EXW</div>
+          <div class="lbl" id="i18n-total-label">Итого EXW</div>
           <div style="font-size:0.7rem;color:var(--muted);margin-top:6px;line-height:1.7" id="total_note"></div>
         </div>
         <div class="amount" id="total_amount">— <span>USD</span></div>
@@ -211,53 +231,53 @@
   <!-- ===================== ВКЛАДКА: НАСТРОЙКИ ЦЕН ===================== -->
   <div id="tab-settings" style="display:none">
     <div class="settings-panel">
-      <div class="panel-title">Настройки цен и размеров</div>
-      <div class="hint" style="margin-bottom:6px">Здесь можно изменить цены и характеристики деталей, а также добавить новые высоты стоек и артикулы балок. Изменения сохраняются автоматически и сразу применяются в расчёте.</div>
+      <div class="panel-title" id="i18n-settings-title">Настройки цен и размеров</div>
+      <div class="hint" id="i18n-settings-hint" style="margin-bottom:6px">Здесь можно изменить цены и характеристики деталей, а также добавить новые высоты стоек и артикулы балок. Изменения сохраняются автоматически и сразу применяются в расчёте.</div>
 
-      <div class="settings-block-title">Стойки (по высоте)</div>
+      <div class="settings-block-title" id="i18n-columns-title">Стойки (по высоте)</div>
       <div class="settings-header">
-        <span>Высота, мм</span><span>Цена 90×70, USD</span><span>Цена 100×70, USD</span><span></span>
+        <span id="i18n-col-height-header">Высота, мм</span><span id="i18n-col-p90-header">Цена 90×70, USD</span><span id="i18n-col-p100-header">Цена 100×70, USD</span><span></span>
       </div>
       <div id="columns-table-body"></div>
-      <button class="btn-add-pair" onclick="addColumn()">+ Добавить высоту стойки</button>
+      <button class="btn-add-pair" id="btn-add-column" onclick="addColumn()">+ Добавить высоту стойки</button>
 
       <div class="divider"></div>
 
-      <div class="settings-block-title">Балки L=1900 мм (2 поддона)</div>
+      <div class="settings-block-title" id="i18n-beams1900-title">Балки L=1900 мм (2 поддона)</div>
       <div class="settings-header">
-        <span>Артикул</span><span>Нагрузка, кг/поддон</span><span>Цена, USD</span><span></span>
+        <span id="i18n-beams1900-article-header">Артикул</span><span id="i18n-beams1900-load-header">Нагрузка, кг/поддон</span><span id="i18n-beams1900-price-header">Цена, USD</span><span></span>
       </div>
       <div id="beams1900-table-body"></div>
-      <button class="btn-add-pair" onclick="addBeam('1900')">+ Добавить артикул</button>
+      <button class="btn-add-pair" id="btn-add-beam1900" onclick="addBeam('1900')">+ Добавить артикул</button>
 
       <div class="divider"></div>
 
-      <div class="settings-block-title">Балки L=2800 мм (3 поддона)</div>
+      <div class="settings-block-title" id="i18n-beams2800-title">Балки L=2800 мм (3 поддона)</div>
       <div class="settings-header">
-        <span>Артикул</span><span>Нагрузка, кг/поддон</span><span>Цена, USD</span><span></span>
+        <span id="i18n-beams2800-article-header">Артикул</span><span id="i18n-beams2800-load-header">Нагрузка, кг/поддон</span><span id="i18n-beams2800-price-header">Цена, USD</span><span></span>
       </div>
       <div id="beams2800-table-body"></div>
-      <button class="btn-add-pair" onclick="addBeam('2800')">+ Добавить артикул</button>
+      <button class="btn-add-pair" id="btn-add-beam2800" onclick="addBeam('2800')">+ Добавить артикул</button>
 
       <div class="divider"></div>
 
-      <div class="settings-block-title">Прочие детали</div>
+      <div class="settings-block-title" id="i18n-other-parts-title">Прочие детали</div>
       <div class="row-fields">
-        <div class="field"><label>Уголок, USD/шт</label><input type="number" step="0.0001" id="set_corner" oninput="updateAccessoryPrice('cornerPrice', this.value)"></div>
-        <div class="field"><label>Барьер, USD/шт</label><input type="number" step="0.0001" id="set_barrier" oninput="updateAccessoryPrice('barrierPrice', this.value)"></div>
-        <div class="field"><label>Распорка, USD/шт</label><input type="number" step="0.0001" id="set_brace" oninput="updateAccessoryPrice('bracePrice', this.value)"></div>
+        <div class="field"><label id="i18n-corner-price-label">Уголок, USD/шт</label><input type="number" step="0.0001" id="set_corner" oninput="updateAccessoryPrice('cornerPrice', this.value)"></div>
+        <div class="field"><label id="i18n-barrier-price-label">Барьер, USD/шт</label><input type="number" step="0.0001" id="set_barrier" oninput="updateAccessoryPrice('barrierPrice', this.value)"></div>
+        <div class="field"><label id="i18n-brace-price-label">Распорка, USD/шт</label><input type="number" step="0.0001" id="set_brace" oninput="updateAccessoryPrice('bracePrice', this.value)"></div>
       </div>
 
       <div class="markup-block">
         <div class="field">
-          <label style="color:var(--accent)">Наценка на все детали, %</label>
+          <label style="color:var(--accent)" id="i18n-markup-label">Наценка на все детали, %</label>
           <input type="number" step="1" id="set_markup" placeholder="например 50" oninput="updateMarkup(this.value)">
-          <div class="hint">Наценка прибавляется к цене каждой детали. В результате расчёта и в PDF-КП показывается уже цена с наценкой — сам процент нигде не отображается.</div>
+          <div class="hint" id="i18n-markup-hint">Наценка прибавляется к цене каждой детали. В результате расчёта и в PDF-КП показывается уже цена с наценкой — сам процент нигде не отображается.</div>
         </div>
       </div>
 
       <div style="margin-top:20px">
-        <button class="btn-danger-outline" onclick="resetDefaults()">Сбросить все настройки к заводским</button>
+        <button class="btn-danger-outline" id="btn-reset-defaults" onclick="resetDefaults()">Сбросить все настройки к заводским</button>
       </div>
     </div>
   </div>
@@ -265,6 +285,257 @@
 </div>
 
 <script>
+// ===== ПЕРЕВОДЫ =====
+const I18N = {
+  ru: {
+    pageTitle: 'Калькулятор стеллажей',
+    pageSubtitle: 'Тяжёлый паллетный стеллаж · EXW цены поставщика',
+    tabCalc: 'Калькулятор',
+    tabSettings: 'Настройки цен',
+    generalParamsTitle: 'Общие параметры',
+    weightLabel: 'Макс. вес на поддон (кг)',
+    weightPlaceholder: 'например 1500',
+    heightLabel: 'Высота стеллажа (мм)',
+    heightPlaceholder: 'например 5000',
+    tiersLabel: 'Количество ярусов',
+    tiersPlaceholder: 'например 3',
+    tiersHint: '1 ярус → 2 полки · 2+ ярусов → полок = ярусов',
+    noteColumnLabel: 'Стойка', noteColumnEq: '= пара стоек ш.1000 мм',
+    noteBeamLabel: 'Балок', noteBeamEq: '= полок × секций × 2',
+    noteCornerLabel: 'Уголок', noteBarrierLabel: 'Барьер', noteAndText: 'и',
+    noteAccessoryEq: '— количество задаётся в блоке «Аксессуары» ниже',
+    rowsTitle: 'Ряды стеллажей',
+    addRowBtn: '+ Добавить ряд',
+    rowsEmptyHint: 'Нажмите «+ Добавить ряд» чтобы начать',
+    rowNamePlaceholder: 'Название ряда',
+    removeRowBtn: '✕ Удалить',
+    beam1900TitleShort: 'Балки L=1900 (2 поддона)',
+    beam2800TitleShort: 'Балки L=2800 (3 поддона)',
+    sectionsLabel: 'Секций',
+    pairsTitle: 'Ряды спина к спине (пары)',
+    addPairBtn: '+ Добавить пару',
+    pairsHint: 'Ряды одной пары идут спина к спине. Распорки считаются на стойки пары.',
+    rowALabel: 'Ряд А', rowBLabel: 'Ряд Б',
+    selectPlaceholder: '— выбрать —',
+    bracesPerColLabel: 'Распорок на стойку',
+    accessoriesTitle: 'Аксессуары',
+    barriersLabel: 'Защитные барьеры',
+    cornersLabel: 'Уголки на ножки',
+    accessoriesHint: 'Число рядом с переключателем — количество штук на 1 ряд (барьеры) / на 1 стойку (уголки). По умолчанию: 2 и 2 — как раньше.',
+    resultTitle: 'Результат расчёта',
+    pdfBtn: '⬇ Скачать КП (PDF)',
+    pdfBtnLoading: 'Формируем PDF…',
+    fillParamsHint: 'Заполните параметры и добавьте ряды',
+    fillGeneralHint: 'Заполните общие параметры и добавьте ряды',
+    addSectionsHint: 'Добавьте секции в ряды',
+    totalLabel: 'Итого EXW',
+    settingsTitle: 'Настройки цен и размеров',
+    settingsHint: 'Здесь можно изменить цены и характеристики деталей, а также добавить новые высоты стоек и артикулы балок. Изменения сохраняются автоматически и сразу применяются в расчёте.',
+    columnsSectionTitle: 'Стойки (по высоте)',
+    colHeightHeader: 'Высота, мм', colP90Header: 'Цена 90×70, USD', colP100Header: 'Цена 100×70, USD',
+    addColumnBtn: '+ Добавить высоту стойки',
+    beam1900Title: 'Балки L=1900 мм (2 поддона)',
+    beam2800Title: 'Балки L=2800 мм (3 поддона)',
+    articleHeader: 'Артикул', loadHeader: 'Нагрузка, кг/поддон', priceHeader: 'Цена, USD',
+    addBeamBtn: '+ Добавить артикул',
+    otherPartsTitle: 'Прочие детали',
+    cornerPriceLabel: 'Уголок, USD/шт', barrierPriceLabel: 'Барьер, USD/шт', bracePriceLabel: 'Распорка, USD/шт',
+    markupLabel: 'Наценка на все детали, %', markupPlaceholder: 'например 50',
+    markupHint: 'Наценка прибавляется к цене каждой детали. В результате расчёта и в PDF-КП показывается уже цена с наценкой — сам процент нигде не отображается.',
+    resetBtn: 'Сбросить все настройки к заводским',
+    resetConfirm: 'Сбросить все цены и размеры к заводским значениям? Наценка тоже будет обнулена.',
+    newArticleDefault: 'Новый артикул',
+    colHeightPlaceholder: 'Высота, мм', colP90Placeholder: 'Цена 90×70', colP100Placeholder: 'Цена 100×70',
+    articlePlaceholder: 'Артикул', loadPlaceholder: 'Нагрузка, кг', pricePlaceholder: 'Цена',
+    pdfNotLoaded: 'Не удалось загрузить библиотеку формирования PDF. Проверьте подключение к интернету и обновите страницу.',
+    heightExceeds: 'Высота {h} мм превышает максимум {max} мм.',
+    noBeamWarning: '⚠ L={len}: нет балки ≥ {weight} кг/поддон. Макс: {max} кг.',
+    colLoadWarning: '⚠ Нагрузка на стойку ~{load} кг > 11000 кг — уточните у поставщика.',
+    colSpec90: 'Стойка 90×70-2.0мм (до 8000 кг)',
+    colSpec100: 'Стойка 100×70-2.0мм (до 11000 кг)',
+    itemColumns: 'Стойки', itemBeam1900: 'Балки L=1900', itemBeam2800: 'Балки L=2800',
+    itemCorners: 'Уголки L-образные', itemBarriers: 'Защитные барьеры', itemBraces: 'Распорки',
+    specHeight: 'H={h} мм', specUpTo: 'до {load} кг/поддон',
+    specCornerTech: 'H=300, t=5.0', specCornerCount: '{cols} стоек × {n}',
+    specBarrierTech: 'H500×L1000, φ76-2.5', specBarrierCount: '{rows} рядов × {n}',
+    specBraceTech: 'L=300, F5030-1.5',
+    braceDetailLine: '{a}+{b}: {cols} стоек × {n} = {total} шт.',
+    pieceUnit: 'шт.',
+    rowsSummaryLine: '{name}: {n1}×L1900 + {n2}×L2800',
+    totalNote: '{rows} рядов · {tiers} яр. ({shelves} полок) · H={h} мм',
+    defaultRowName: 'Ряд',
+    kpTitle: 'Коммерческое предложение', kpDateLabel: 'Дата',
+    kpMeta: 'Тяжёлый паллетный стеллаж · Цены EXW, USD',
+    kpColName: 'Наименование', kpColSpec: 'Характеристика', kpColQty: 'Кол-во',
+    kpColUnitPrice: 'Цена за ед., USD', kpColSum: 'Сумма, USD', kpTotal: 'Итого',
+  },
+  zh: {
+    pageTitle: '货架计算器',
+    pageSubtitle: '重型托盘货架 · 供应商 EXW 价格',
+    tabCalc: '计算器',
+    tabSettings: '价格设置',
+    generalParamsTitle: '通用参数',
+    weightLabel: '每托盘最大承重（kg）',
+    weightPlaceholder: '例如 1500',
+    heightLabel: '货架高度（mm）',
+    heightPlaceholder: '例如 5000',
+    tiersLabel: '层数',
+    tiersPlaceholder: '例如 3',
+    tiersHint: '1层 → 2块搁板 · 2层及以上 → 搁板数 = 层数',
+    noteColumnLabel: '立柱', noteColumnEq: '= 一对立柱，宽1000mm',
+    noteBeamLabel: '横梁', noteBeamEq: '= 搁板数 × 节数 × 2',
+    noteCornerLabel: '护角', noteBarrierLabel: '护栏', noteAndText: '和',
+    noteAccessoryEq: '——数量在下方"配件"区块中设置',
+    rowsTitle: '货架排',
+    addRowBtn: '+ 添加排',
+    rowsEmptyHint: '点击"+ 添加排"开始',
+    rowNamePlaceholder: '排名称',
+    removeRowBtn: '✕ 删除',
+    beam1900TitleShort: '横梁 L=1900（2托盘）',
+    beam2800TitleShort: '横梁 L=2800（3托盘）',
+    sectionsLabel: '节数',
+    pairsTitle: '背靠背排（配对）',
+    addPairBtn: '+ 添加配对',
+    pairsHint: '同一配对的两排背靠背布置。撑杆按配对立柱计算。',
+    rowALabel: '排 A', rowBLabel: '排 B',
+    selectPlaceholder: '— 请选择 —',
+    bracesPerColLabel: '每根立柱撑杆数',
+    accessoriesTitle: '配件',
+    barriersLabel: '防护栏',
+    cornersLabel: '立柱护角',
+    accessoriesHint: '开关旁边的数字表示每排（护栏）/每根立柱（护角）的数量。默认值：2 和 2 —— 与之前相同。',
+    resultTitle: '计算结果',
+    pdfBtn: '⬇ 下载报价单（PDF）',
+    pdfBtnLoading: '正在生成 PDF…',
+    fillParamsHint: '请填写参数并添加排',
+    fillGeneralHint: '请填写通用参数并添加排',
+    addSectionsHint: '请在排中添加节数',
+    totalLabel: 'EXW 总计',
+    settingsTitle: '价格和尺寸设置',
+    settingsHint: '在这里可以修改各部件的价格和参数，也可以添加新的立柱高度和横梁型号。更改会自动保存并立即应用到计算中。',
+    columnsSectionTitle: '立柱（按高度）',
+    colHeightHeader: '高度，mm', colP90Header: '价格 90×70，USD', colP100Header: '价格 100×70，USD',
+    addColumnBtn: '+ 添加立柱高度',
+    beam1900Title: '横梁 L=1900 mm（2托盘）',
+    beam2800Title: '横梁 L=2800 mm（3托盘）',
+    articleHeader: '型号', loadHeader: '承重，kg/托盘', priceHeader: '价格，USD',
+    addBeamBtn: '+ 添加型号',
+    otherPartsTitle: '其他部件',
+    cornerPriceLabel: '护角，USD/件', barrierPriceLabel: '护栏，USD/件', bracePriceLabel: '撑杆，USD/件',
+    markupLabel: '所有部件加价，%', markupPlaceholder: '例如 50',
+    markupHint: '加价会加到每个部件的价格上。计算结果和PDF报价单中显示的都是已含加价的最终价格——加价比例本身不会显示。',
+    resetBtn: '恢复出厂设置',
+    resetConfirm: '确定要将所有价格和尺寸恢复为出厂默认值吗？加价比例也将被清零。',
+    newArticleDefault: '新型号',
+    colHeightPlaceholder: '高度，mm', colP90Placeholder: '价格 90×70', colP100Placeholder: '价格 100×70',
+    articlePlaceholder: '型号', loadPlaceholder: '承重，kg', pricePlaceholder: '价格',
+    pdfNotLoaded: '无法加载PDF生成库。请检查网络连接并刷新页面。',
+    heightExceeds: '高度 {h} mm 超过最大值 {max} mm。',
+    noBeamWarning: '⚠ L={len}：没有承重 ≥ {weight} kg/托盘 的横梁。最大：{max} kg。',
+    colLoadWarning: '⚠ 立柱承重约 {load} kg > 11000 kg — 请与供应商确认。',
+    colSpec90: '立柱 90×70-2.0mm（最大8000kg）',
+    colSpec100: '立柱 100×70-2.0mm（最大11000kg）',
+    itemColumns: '立柱', itemBeam1900: '横梁 L=1900', itemBeam2800: '横梁 L=2800',
+    itemCorners: 'L型护角', itemBarriers: '防护栏', itemBraces: '撑杆',
+    specHeight: 'H={h} mm', specUpTo: '最大 {load} kg/托盘',
+    specCornerTech: 'H=300, t=5.0', specCornerCount: '{cols} 根立柱 × {n}',
+    specBarrierTech: 'H500×L1000, φ76-2.5', specBarrierCount: '{rows} 排 × {n}',
+    specBraceTech: 'L=300, F5030-1.5',
+    braceDetailLine: '{a}+{b}：{cols} 根立柱 × {n} = {total} 件',
+    pieceUnit: '件',
+    rowsSummaryLine: '{name}：{n1}×L1900 + {n2}×L2800',
+    totalNote: '{rows} 排 · {tiers} 层（{shelves} 块搁板）· H={h} mm',
+    defaultRowName: '排',
+    kpTitle: '报价单', kpDateLabel: '日期',
+    kpMeta: '重型托盘货架 · EXW 价格，USD',
+    kpColName: '品名', kpColSpec: '规格', kpColQty: '数量',
+    kpColUnitPrice: '单价，USD', kpColSum: '金额，USD', kpTotal: '总计',
+  }
+};
+
+const LANG_KEY = 'rackCalcLang_v1';
+let lang = localStorage.getItem(LANG_KEY) || 'ru';
+
+function t(key, vars) {
+  let str = (I18N[lang] && I18N[lang][key]) || I18N.ru[key] || key;
+  if (vars) {
+    Object.keys(vars).forEach(k => { str = str.split(`{${k}}`).join(vars[k]); });
+  }
+  return str;
+}
+
+const STATIC_TEXT_MAP = {
+  'i18n-title': 'pageTitle', 'i18n-subtitle': 'pageSubtitle',
+  'tab-btn-calc': 'tabCalc', 'tab-btn-settings': 'tabSettings',
+  'i18n-general-title': 'generalParamsTitle',
+  'i18n-weight-label': 'weightLabel', 'i18n-height-label': 'heightLabel',
+  'i18n-tiers-label': 'tiersLabel', 'i18n-tiers-hint': 'tiersHint',
+  'i18n-rows-title': 'rowsTitle', 'btn-add-row': 'addRowBtn',
+  'i18n-pairs-title': 'pairsTitle', 'btn-add-pair': 'addPairBtn', 'i18n-pairs-hint': 'pairsHint',
+  'i18n-acc-title': 'accessoriesTitle', 'i18n-barriers-label': 'barriersLabel',
+  'i18n-corners-label': 'cornersLabel', 'i18n-acc-hint': 'accessoriesHint',
+  'i18n-result-title': 'resultTitle', 'btn-pdf': 'pdfBtn', 'i18n-total-label': 'totalLabel',
+  'i18n-settings-title': 'settingsTitle', 'i18n-settings-hint': 'settingsHint',
+  'i18n-columns-title': 'columnsSectionTitle',
+  'i18n-col-height-header': 'colHeightHeader', 'i18n-col-p90-header': 'colP90Header', 'i18n-col-p100-header': 'colP100Header',
+  'btn-add-column': 'addColumnBtn',
+  'i18n-beams1900-title': 'beam1900Title',
+  'i18n-beams1900-article-header': 'articleHeader', 'i18n-beams1900-load-header': 'loadHeader', 'i18n-beams1900-price-header': 'priceHeader',
+  'btn-add-beam1900': 'addBeamBtn',
+  'i18n-beams2800-title': 'beam2800Title',
+  'i18n-beams2800-article-header': 'articleHeader', 'i18n-beams2800-load-header': 'loadHeader', 'i18n-beams2800-price-header': 'priceHeader',
+  'btn-add-beam2800': 'addBeamBtn',
+  'i18n-other-parts-title': 'otherPartsTitle',
+  'i18n-corner-price-label': 'cornerPriceLabel', 'i18n-barrier-price-label': 'barrierPriceLabel', 'i18n-brace-price-label': 'bracePriceLabel',
+  'i18n-markup-label': 'markupLabel', 'i18n-markup-hint': 'markupHint',
+  'btn-reset-defaults': 'resetBtn',
+};
+
+function updateNoteBlock() {
+  document.getElementById('note-block').innerHTML =
+    `<b style="color:var(--text)">${t('noteColumnLabel')}</b> ${t('noteColumnEq')} &nbsp;·&nbsp;
+     <b style="color:var(--text)">${t('noteBeamLabel')}</b> ${t('noteBeamEq')} &nbsp;·&nbsp;
+     <b style="color:var(--text)">${t('noteCornerLabel')}</b> ${t('noteAndText')} <b style="color:var(--text)">${t('noteBarrierLabel')}</b> ${t('noteAccessoryEq')}`;
+}
+
+function updateHeightHint() {
+  const heights = [...settings.columns].sort((a, b) => a.h - b.h).map(c => c.h).join(' / ');
+  document.getElementById('height-hint').textContent = heights;
+}
+
+function applyStaticText() {
+  document.title = t('pageTitle');
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'ru';
+  document.getElementById('lang-btn-ru').classList.toggle('active', lang === 'ru');
+  document.getElementById('lang-btn-zh').classList.toggle('active', lang === 'zh');
+  Object.entries(STATIC_TEXT_MAP).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(key);
+  });
+  document.getElementById('weight').placeholder = t('weightPlaceholder');
+  document.getElementById('height').placeholder = t('heightPlaceholder');
+  document.getElementById('tiers').placeholder = t('tiersPlaceholder');
+  document.getElementById('set_markup').placeholder = t('markupPlaceholder');
+  updateNoteBlock();
+  updateHeightHint();
+}
+
+function setLang(newLang) {
+  lang = newLang;
+  localStorage.setItem(LANG_KEY, lang);
+  applyStaticText();
+  renderRows();
+  renderPairs();
+  renderColumnsTable();
+  renderBeamsTable('1900');
+  renderBeamsTable('2800');
+  document.getElementById('set_corner').value = settings.cornerPrice;
+  document.getElementById('set_barrier').value = settings.barrierPrice;
+  document.getElementById('set_brace').value = settings.bracePrice;
+  document.getElementById('set_markup').value = settings.markup;
+  calc();
+}
+
 // ===== ЦЕНЫ И РАЗМЕРЫ ПО УМОЛЧАНИЮ ("ЗАВОДСКИЕ") =====
 const FACTORY_DEFAULTS = {
   beams1900: [
@@ -315,7 +586,7 @@ let settings = loadSettings();
 
 let rowIdCounter = 0;
 let pairIdCounter = 0;
-let rows = [];   // [{id, name, sec1900, sec2800}]
+let rows = [];   // [{id, name, isCustomName, sec1900, sec2800}]
 let pairs = [];  // [{id, rowA, rowB, bracesPerCol}]
 let lastResult = null; // последний успешный расчёт для экспорта в PDF
 
@@ -343,13 +614,14 @@ function renderColumnsTable() {
   const el = document.getElementById('columns-table-body');
   el.innerHTML = settings.columns.map((c, i) => `
     <div class="settings-row">
-      <input type="number" value="${c.h}" oninput="updateColumn(${i},'h',this.value)" placeholder="Высота, мм">
-      <input type="number" step="0.0001" value="${c.p90}" oninput="updateColumn(${i},'p90',this.value)" placeholder="Цена 90×70">
-      <input type="number" step="0.0001" value="${c.p100}" oninput="updateColumn(${i},'p100',this.value)" placeholder="Цена 100×70">
+      <input type="number" value="${c.h}" oninput="updateColumn(${i},'h',this.value)" placeholder="${t('colHeightPlaceholder')}">
+      <input type="number" step="0.0001" value="${c.p90}" oninput="updateColumn(${i},'p90',this.value)" placeholder="${t('colP90Placeholder')}">
+      <input type="number" step="0.0001" value="${c.p100}" oninput="updateColumn(${i},'p100',this.value)" placeholder="${t('colP100Placeholder')}">
       <button class="btn-remove-pair" onclick="removeColumn(${i})">✕</button>
     </div>`).join('');
+  updateHeightHint();
 }
-function updateColumn(i, field, val) { settings.columns[i][field] = parseFloat(val) || 0; saveSettings(); calc(); }
+function updateColumn(i, field, val) { settings.columns[i][field] = parseFloat(val) || 0; saveSettings(); renderColumnsTable(); calc(); }
 function removeColumn(i) { settings.columns.splice(i, 1); saveSettings(); renderColumnsTable(); calc(); }
 function addColumn() { settings.columns.push({ h: 0, p90: 0, p100: 0 }); saveSettings(); renderColumnsTable(); }
 
@@ -358,9 +630,9 @@ function renderBeamsTable(len) {
   const el = document.getElementById('beams' + len + '-table-body');
   el.innerHTML = arr.map((b, i) => `
     <div class="settings-row">
-      <input type="text" value="${b.spec}" oninput="updateBeam('${len}',${i},'spec',this.value)" placeholder="Артикул">
-      <input type="number" value="${b.load}" oninput="updateBeam('${len}',${i},'load',this.value)" placeholder="Нагрузка, кг">
-      <input type="number" step="0.0001" value="${b.price}" oninput="updateBeam('${len}',${i},'price',this.value)" placeholder="Цена">
+      <input type="text" value="${b.spec}" oninput="updateBeam('${len}',${i},'spec',this.value)" placeholder="${t('articlePlaceholder')}">
+      <input type="number" value="${b.load}" oninput="updateBeam('${len}',${i},'load',this.value)" placeholder="${t('loadPlaceholder')}">
+      <input type="number" step="0.0001" value="${b.price}" oninput="updateBeam('${len}',${i},'price',this.value)" placeholder="${t('pricePlaceholder')}">
       <button class="btn-remove-pair" onclick="removeBeam('${len}',${i})">✕</button>
     </div>`).join('');
 }
@@ -370,13 +642,13 @@ function updateBeam(len, i, field, val) {
   saveSettings(); calc();
 }
 function removeBeam(len, i) { settings['beams' + len].splice(i, 1); saveSettings(); renderBeamsTable(len); calc(); }
-function addBeam(len) { settings['beams' + len].push({ spec: 'Новый артикул', load: 0, price: 0 }); saveSettings(); renderBeamsTable(len); }
+function addBeam(len) { settings['beams' + len].push({ spec: t('newArticleDefault'), load: 0, price: 0 }); saveSettings(); renderBeamsTable(len); }
 
 function updateAccessoryPrice(field, val) { settings[field] = parseFloat(val) || 0; saveSettings(); calc(); }
 function updateMarkup(val) { settings.markup = parseFloat(val) || 0; saveSettings(); calc(); }
 
 function resetDefaults() {
-  if (!confirm('Сбросить все цены и размеры к заводским значениям? Наценка тоже будет обнулена.')) return;
+  if (!confirm(t('resetConfirm'))) return;
   settings = clone(FACTORY_DEFAULTS);
   saveSettings();
   renderSettingsTab();
@@ -387,7 +659,7 @@ function resetDefaults() {
 function addRow() {
   rowIdCounter++;
   const id = rowIdCounter;
-  rows.push({ id, name: `Ряд ${id}`, sec1900: 0, sec2800: 0 });
+  rows.push({ id, name: `${t('defaultRowName')} ${id}`, isCustomName: false, sec1900: 0, sec2800: 0 });
   renderRows();
   updatePairSelects();
   calc();
@@ -403,32 +675,33 @@ function removeRow(id) {
 }
 
 function renderRows() {
+  rows.forEach(r => { if (!r.isCustomName) r.name = `${t('defaultRowName')} ${r.id}`; });
   const container = document.getElementById('rows-container');
   if (rows.length === 0) {
-    container.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;margin-bottom:16px;padding:16px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center">Нажмите «+ Добавить ряд» чтобы начать</div>';
+    container.innerHTML = `<div style="color:var(--muted);font-size:0.8rem;margin-bottom:16px;padding:16px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center">${t('rowsEmptyHint')}</div>`;
     return;
   }
   container.innerHTML = rows.map((r, idx) => `
     <div class="row-card" id="row-card-${r.id}">
       <div class="row-card-header">
         <div class="row-badge">#${idx+1}</div>
-        <input class="row-name-input" value="${r.name}" placeholder="Название ряда"
+        <input class="row-name-input" value="${r.name}" placeholder="${t('rowNamePlaceholder')}"
           oninput="updateRowName(${r.id}, this.value)">
-        <button class="btn-remove" onclick="removeRow(${r.id})">✕ Удалить</button>
+        <button class="btn-remove" onclick="removeRow(${r.id})">${t('removeRowBtn')}</button>
       </div>
       <div class="row-fields">
         <div class="sec-block">
-          <div class="sec-block-title">Балки L=1900 (2 поддона)</div>
+          <div class="sec-block-title">${t('beam1900TitleShort')}</div>
           <div class="field" style="margin:0">
-            <label>Секций</label>
+            <label>${t('sectionsLabel')}</label>
             <input type="number" min="0" value="${r.sec1900}" placeholder="0"
               oninput="updateRow(${r.id},'sec1900',this.value)">
           </div>
         </div>
         <div class="sec-block">
-          <div class="sec-block-title">Балки L=2800 (3 поддона)</div>
+          <div class="sec-block-title">${t('beam2800TitleShort')}</div>
           <div class="field" style="margin:0">
-            <label>Секций</label>
+            <label>${t('sectionsLabel')}</label>
             <input type="number" min="0" value="${r.sec2800}" placeholder="0"
               oninput="updateRow(${r.id},'sec2800',this.value)">
           </div>
@@ -440,7 +713,7 @@ function renderRows() {
 
 function updateRowName(id, val) {
   const r = rows.find(r => r.id === id);
-  if (r) r.name = val;
+  if (r) { r.name = val; r.isCustomName = true; }
   updatePairSelects();
 }
 
@@ -470,19 +743,19 @@ function renderPairs() {
   container.innerHTML = pairs.map(p => `
     <div class="pair-row" id="pair-${p.id}">
       <div class="field" style="margin:0">
-        <label>Ряд А</label>
+        <label>${t('rowALabel')}</label>
         <select onchange="updatePair(${p.id},'rowA',this.value)">
-          <option value="">— выбрать —</option>${opts}
+          <option value="">${t('selectPlaceholder')}</option>${opts}
         </select>
       </div>
       <div class="field" style="margin:0">
-        <label>Ряд Б</label>
+        <label>${t('rowBLabel')}</label>
         <select onchange="updatePair(${p.id},'rowB',this.value)">
-          <option value="">— выбрать —</option>${opts}
+          <option value="">${t('selectPlaceholder')}</option>${opts}
         </select>
       </div>
       <div class="field" style="margin:0">
-        <label>Распорок на стойку</label>
+        <label>${t('bracesPerColLabel')}</label>
         <input type="number" min="1" max="10" value="${p.bracesPerCol}"
           oninput="updatePair(${p.id},'bracesPerCol',this.value)">
       </div>
@@ -527,7 +800,7 @@ function calc() {
   warn.classList.remove('visible'); warn.innerHTML = '';
 
   if (!weight || !height || !tiers || isNaN(weight) || isNaN(height) || isNaN(tiers) || rows.length === 0) {
-    grid.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Заполните общие параметры и добавьте ряды</div>';
+    grid.innerHTML = `<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">${t('fillGeneralHint')}</div>`;
     totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
 
@@ -543,15 +816,15 @@ function calc() {
   const col = columnsSorted.find(c => c.h >= height);
   if (!col) {
     const maxH = columnsSorted.length ? columnsSorted[columnsSorted.length - 1].h : 0;
-    warn.innerHTML = `Высота ${height} мм превышает максимум ${maxH} мм.`;
+    warn.innerHTML = t('heightExceeds', { h: height, max: maxH });
     warn.classList.add('visible'); grid.innerHTML = ''; totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
 
   // Подбор балок
   const beam1 = beams1900Sorted.find(b => b.load >= weight);
   const beam2 = beams2800Sorted.find(b => b.load >= weight);
-  if (!beam1 && beams1900Sorted.length) warnings.push(`⚠ L=1900: нет балки ≥ ${weight} кг/поддон. Макс: ${beams1900Sorted[beams1900Sorted.length-1].load} кг.`);
-  if (!beam2 && beams2800Sorted.length) warnings.push(`⚠ L=2800: нет балки ≥ ${weight} кг/поддон. Макс: ${beams2800Sorted[beams2800Sorted.length-1].load} кг.`);
+  if (!beam1 && beams1900Sorted.length) warnings.push(t('noBeamWarning', { len: '1900', weight, max: beams1900Sorted[beams1900Sorted.length-1].load }));
+  if (!beam2 && beams2800Sorted.length) warnings.push(t('noBeamWarning', { len: '2800', weight, max: beams2800Sorted[beams2800Sorted.length-1].load }));
 
   // Считаем по каждому ряду
   let totalColumns = 0, totalB1900 = 0, totalB2800 = 0;
@@ -571,14 +844,15 @@ function calc() {
   }, 0);
   const loadPerCol = shelves * weight * maxPallets;
   let colSpec, colPriceBase;
-  if (loadPerCol <= 8000)       { colSpec = 'Стойка 90×70-2.0мм (до 8000 кг)';  colPriceBase = col.p90; }
-  else if (loadPerCol <= 11000) { colSpec = 'Стойка 100×70-2.0мм (до 11000 кг)'; colPriceBase = col.p100; }
-  else { warnings.push(`⚠ Нагрузка на стойку ~${Math.round(loadPerCol)} кг > 11000 кг — уточните у поставщика.`); colSpec = 'Стойка 100×70-2.0мм (до 11000 кг)'; colPriceBase = col.p100; }
+  if (loadPerCol <= 8000)       { colSpec = t('colSpec90');  colPriceBase = col.p90; }
+  else if (loadPerCol <= 11000) { colSpec = t('colSpec100'); colPriceBase = col.p100; }
+  else { warnings.push(t('colLoadWarning', { load: Math.round(loadPerCol) })); colSpec = t('colSpec100'); colPriceBase = col.p100; }
   const colPrice = colPriceBase * markupMult;
 
   // Аксессуары
   const numCorners  = addCorners  ? totalColumns * cornersPerCol : 0;
-  const numBarriers = addBarriers ? rows.filter(r => (r.sec1900+r.sec2800) > 0).length * barriersPerRow : 0;
+  const rowsWithSections = rows.filter(r => (r.sec1900+r.sec2800) > 0).length;
+  const numBarriers = addBarriers ? rowsWithSections * barriersPerRow : 0;
 
   // Распорки по парам
   let totalBraces = 0;
@@ -594,7 +868,7 @@ function calc() {
     const pairCols = Math.max(secsA, secsB) + 1;
     const n = pairCols * p.bracesPerCol;
     totalBraces += n;
-    bracesDetail.push(`${rA.name}+${rB.name}: ${pairCols} стоек × ${p.bracesPerCol} = ${n} шт.`);
+    bracesDetail.push(t('braceDetailLine', { a: rA.name, b: rB.name, cols: pairCols, n: p.bracesPerCol, total: n }));
   });
 
   // Цены за единицу (с наценкой)
@@ -621,60 +895,61 @@ function calc() {
   const items = [];
 
   if (totalColumns > 0) items.push({
-    qty: totalColumns, name: 'Стойки',
-    spec: `${colSpec}<br>H=${col.h} мм`,
+    qty: totalColumns, name: t('itemColumns'),
+    spec: `${colSpec}<br>${t('specHeight', { h: col.h })}`,
     price: costCols, up: colPrice
   });
   if (totalB1900 > 0 && beam1) items.push({
-    qty: totalB1900, name: 'Балки L=1900',
-    spec: `${beam1.spec}<br>до ${beam1.load} кг/поддон`,
+    qty: totalB1900, name: t('itemBeam1900'),
+    spec: `${beam1.spec}<br>${t('specUpTo', { load: beam1.load })}`,
     price: costB1900, up: beam1Price
   });
   if (totalB2800 > 0 && beam2) items.push({
-    qty: totalB2800, name: 'Балки L=2800',
-    spec: `${beam2.spec}<br>до ${beam2.load} кг/поддон`,
+    qty: totalB2800, name: t('itemBeam2800'),
+    spec: `${beam2.spec}<br>${t('specUpTo', { load: beam2.load })}`,
     price: costB2800, up: beam2Price
   });
   if (addCorners && numCorners > 0) items.push({
-    qty: numCorners, name: 'Уголки L-образные',
-    spec: `H=300, t=5.0<br>${totalColumns} стоек × ${cornersPerCol}`,
+    qty: numCorners, name: t('itemCorners'),
+    spec: `${t('specCornerTech')}<br>${t('specCornerCount', { cols: totalColumns, n: cornersPerCol })}`,
     price: costCorners, up: cornerPrice
   });
   if (addBarriers && numBarriers > 0) items.push({
-    qty: numBarriers, name: 'Защитные барьеры',
-    spec: `H500×L1000, φ76-2.5<br>${rows.filter(r=>(r.sec1900+r.sec2800)>0).length} рядов × ${barriersPerRow}`,
+    qty: numBarriers, name: t('itemBarriers'),
+    spec: `${t('specBarrierTech')}<br>${t('specBarrierCount', { rows: rowsWithSections, n: barriersPerRow })}`,
     price: costBarriers, up: barrierPrice
   });
   if (totalBraces > 0) items.push({
-    qty: totalBraces, name: 'Распорки',
-    spec: `L=300, F5030-1.5<br>${bracesDetail.join('<br>')}`,
+    qty: totalBraces, name: t('itemBraces'),
+    spec: `${t('specBraceTech')}<br>${bracesDetail.join('<br>')}`,
     price: costBraces, up: bracePrice
   });
 
   if (items.length === 0) {
-    grid.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Добавьте секции в ряды</div>';
+    grid.innerHTML = `<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">${t('addSectionsHint')}</div>`;
     totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
 
+  const pieceUnit = t('pieceUnit');
   grid.innerHTML = items.map(it => `
     <div class="result-item">
-      <div class="qty">${it.qty} <span style="font-size:0.82rem">шт.</span></div>
+      <div class="qty">${it.qty} <span style="font-size:0.82rem">${pieceUnit}</span></div>
       <div class="name">${it.name}</div>
       <div class="spec">${it.spec}</div>
       <div class="price-line">${fmt(it.up)} × ${it.qty} = ${fmt(it.price)} USD</div>
     </div>`).join('');
 
   const rowsSummary = rows.filter(r=>(r.sec1900+r.sec2800)>0)
-    .map(r => `${r.name}: ${r.sec1900||0}×L1900 + ${r.sec2800||0}×L2800`).join(' · ');
+    .map(r => t('rowsSummaryLine', { name: r.name, n1: r.sec1900||0, n2: r.sec2800||0 })).join(' · ');
+  const totalNoteText = t('totalNote', { rows: rows.length, tiers, shelves, h: col.h });
 
   document.getElementById('total_amount').innerHTML = `${fmtT(total)} <span>USD EXW</span>`;
-  document.getElementById('total_note').innerHTML =
-    `${rows.length} рядов · ${tiers} яр. (${shelves} полок) · H=${col.h} мм<br>${rowsSummary}`;
+  document.getElementById('total_note').innerHTML = `${totalNoteText}<br>${rowsSummary}`;
   totBlk.style.display = 'flex';
 
   lastResult = {
     items, total,
-    meta: { rowsCount: rows.length, tiers, shelves, height: col.h, rowsSummary }
+    meta: { totalNoteText, rowsSummary }
   };
   pdfBtn.disabled = false;
 }
@@ -683,7 +958,7 @@ function calc() {
 function buildKPElement(result) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:760px; background:#ffffff; color:#111827; font-family:Arial, Helvetica, sans-serif; padding:28px;';
-  const dateStr = new Date().toLocaleDateString('ru-RU');
+  const dateStr = new Date().toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'ru-RU');
 
   const rowsHtml = result.items.map(it => `
     <tr>
@@ -695,26 +970,26 @@ function buildKPElement(result) {
     </tr>`).join('');
 
   wrap.innerHTML = `
-    <h1 style="font-size:22px;margin-bottom:4px;color:#111827">Коммерческое предложение</h1>
+    <h1 style="font-size:22px;margin-bottom:4px;color:#111827">${t('kpTitle')}</h1>
     <div style="font-size:12px;color:#6b7280;margin-bottom:18px">
-      Дата: ${dateStr} · Тяжёлый паллетный стеллаж · Цены EXW, USD<br>
-      ${result.meta.rowsCount} рядов · ${result.meta.tiers} яр. (${result.meta.shelves} полок) · H=${result.meta.height} мм<br>
+      ${t('kpDateLabel')}: ${dateStr} · ${t('kpMeta')}<br>
+      ${result.meta.totalNoteText}<br>
       ${result.meta.rowsSummary}
     </div>
     <table style="border-collapse:collapse;width:100%;font-size:12.5px">
       <thead>
         <tr style="background:#f3f4f6">
-          <th style="padding:9px 10px;border:1px solid #d1d5db;text-align:left">Наименование</th>
-          <th style="padding:9px 10px;border:1px solid #d1d5db;text-align:left">Характеристика</th>
-          <th style="padding:9px 10px;border:1px solid #d1d5db">Кол-во</th>
-          <th style="padding:9px 10px;border:1px solid #d1d5db">Цена за ед., USD</th>
-          <th style="padding:9px 10px;border:1px solid #d1d5db">Сумма, USD</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db;text-align:left">${t('kpColName')}</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db;text-align:left">${t('kpColSpec')}</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db">${t('kpColQty')}</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db">${t('kpColUnitPrice')}</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db">${t('kpColSum')}</th>
         </tr>
       </thead>
       <tbody>${rowsHtml}</tbody>
     </table>
     <div style="text-align:right;margin-top:18px;font-size:17px;font-weight:bold;color:#111827">
-      Итого: ${Math.round(result.total).toLocaleString('ru-RU')} USD EXW
+      ${t('kpTotal')}: ${Math.round(result.total).toLocaleString(lang === 'zh' ? 'zh-CN' : 'ru-RU')} USD EXW
     </div>
   `;
   return wrap;
@@ -723,13 +998,13 @@ function buildKPElement(result) {
 async function downloadPDF() {
   if (!lastResult) return;
   if (!window.jspdf || !window.html2canvas) {
-    alert('Не удалось загрузить библиотеку формирования PDF. Проверьте подключение к интернету и обновите страницу.');
+    alert(t('pdfNotLoaded'));
     return;
   }
   const btn = document.getElementById('btn-pdf');
   btn.disabled = true;
   const originalText = btn.textContent;
-  btn.textContent = 'Формируем PDF…';
+  btn.textContent = t('pdfBtnLoading');
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -752,7 +1027,8 @@ async function downloadPDF() {
   }
 }
 
-// Инициализация: добавить первый ряд
+// Инициализация
+applyStaticText();
 addRow();
 </script>
 </body>
