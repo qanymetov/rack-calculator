@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Калькулятор стеллажей</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     --bg: #0f1117; --surface: #181b23; --surface2: #1e2230;
@@ -14,11 +16,17 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; min-height: 100vh; padding: 32px 16px 60px; }
-  .header { text-align: center; margin-bottom: 36px; }
+  .header { text-align: center; margin-bottom: 24px; }
   .header h1 { font-family: 'Unbounded', sans-serif; font-size: clamp(1.3rem,4vw,2rem); color: var(--accent); letter-spacing: -0.02em; }
   .header p { color: var(--muted); font-size: 0.78rem; margin-top: 8px; }
 
   .main { max-width: 1000px; margin: 0 auto; }
+
+  /* ── Вкладки ── */
+  .tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 28px; flex-wrap: wrap; }
+  .tab-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-family: 'Unbounded', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 11px 22px; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
   /* ── Общие параметры ── */
   .global-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
@@ -36,6 +44,7 @@
   .rows-header h2 { font-family: 'Unbounded', sans-serif; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
   .btn-add { background: var(--accent); color: #000; border: none; border-radius: 7px; font-family: 'Unbounded', sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; padding: 9px 16px; cursor: pointer; transition: opacity 0.15s; }
   .btn-add:hover { opacity: 0.85; }
+  .btn-add:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .row-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 14px; position: relative; }
   .row-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
@@ -61,8 +70,10 @@
 
   /* ── Аксессуары ── */
   .acc-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .toggle-row { display: flex; align-items: center; gap: 12px; }
+  @media (max-width: 600px) { .acc-panel { grid-template-columns: 1fr; } }
+  .toggle-row { display: flex; align-items: center; gap: 10px; }
   .toggle-label { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; flex: 1; }
+  .qty-input { width: 56px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; padding: 6px 8px; text-align: center; }
   .toggle { position: relative; width: 42px; height: 22px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; inset: 0; background: var(--border); border-radius: 22px; cursor: pointer; transition: background 0.2s; }
@@ -72,6 +83,8 @@
 
   /* ── Результат ── */
   .result-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+  .result-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .result-header .panel-title { margin: 0; padding: 0; border: none; }
   .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 12px; margin-bottom: 18px; }
   .result-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 14px; transition: border-color 0.2s; }
   .result-item:hover { border-color: var(--accent); }
@@ -87,6 +100,19 @@
   .warning.visible { display: block; }
   .divider { height: 1px; background: var(--border); margin: 14px 0; grid-column: 1/-1; }
   .note-block { font-size: 0.68rem; color: var(--muted); line-height: 1.9; grid-column: 1/-1; }
+
+  /* ── Настройки цен ── */
+  .settings-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; }
+  .settings-block-title { font-family: 'Unbounded', sans-serif; font-size: 0.68rem; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin: 18px 0 12px; }
+  .settings-block-title:first-of-type { margin-top: 0; }
+  .settings-header, .settings-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px; }
+  @media (max-width: 640px) { .settings-header, .settings-row { grid-template-columns: 1fr 1fr; } }
+  .settings-header span { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+  .settings-row input { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; padding: 7px 10px; width: 100%; outline: none; }
+  .settings-row input:focus { border-color: var(--accent); }
+  .btn-danger-outline { background: none; border: 1px solid var(--red); color: var(--red); border-radius: 7px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 10px 16px; cursor: pointer; transition: all 0.15s; }
+  .btn-danger-outline:hover { background: rgba(224,82,82,0.12); }
+  .markup-block { background: rgba(245,166,35,0.08); border: 1px solid var(--accent); border-radius: 10px; padding: 16px 18px; margin-top: 20px; }
 </style>
 </head>
 <body>
@@ -97,109 +123,265 @@
 
 <div class="main">
 
-  <!-- ОБЩИЕ ПАРАМЕТРЫ -->
-  <div class="global-panel">
-    <div class="panel-title">Общие параметры</div>
-    <div class="field">
-      <label>Макс. вес на поддон (кг)</label>
-      <input type="number" id="weight" placeholder="например 1500" min="1" oninput="calc()">
-    </div>
-    <div class="field">
-      <label>Высота стеллажа (мм)</label>
-      <input type="number" id="height" placeholder="например 5000" min="1" oninput="calc()">
-      <div class="hint">3000 / 4050 / 5025 / 6000 / 7050 / 8025</div>
-    </div>
-    <div class="field">
-      <label>Количество ярусов</label>
-      <input type="number" id="tiers" placeholder="например 3" min="1" max="10" oninput="calc()">
-      <div class="hint">1 ярус → 2 полки · 2+ ярусов → полок = ярусов</div>
-    </div>
-    <div class="divider"></div>
-    <div class="note-block">
-      <b style="color:var(--text)">Стойка</b> = пара стоек ш.1000 мм &nbsp;·&nbsp;
-      <b style="color:var(--text)">Балок</b> = полок × секций × 2 &nbsp;·&nbsp;
-      <b style="color:var(--text)">Уголок</b> = 2 шт/стойку &nbsp;·&nbsp;
-      <b style="color:var(--text)">Барьер</b> = 2 шт/ряд
-    </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-btn-calc" onclick="showTab('calc')">Калькулятор</button>
+    <button class="tab-btn" id="tab-btn-settings" onclick="showTab('settings')">Настройки цен</button>
   </div>
 
-  <!-- РЯДЫ -->
-  <div class="rows-header">
-    <h2>Ряды стеллажей</h2>
-    <button class="btn-add" onclick="addRow()">+ Добавить ряд</button>
-  </div>
-  <div id="rows-container"></div>
+  <!-- ===================== ВКЛАДКА: КАЛЬКУЛЯТОР ===================== -->
+  <div id="tab-calc">
 
-  <!-- ПАРЫ -->
-  <div class="pairs-panel">
-    <div class="panel-title">Ряды спина к спине (пары)</div>
-    <div id="pairs-container"></div>
-    <button class="btn-add-pair" onclick="addPair()">+ Добавить пару</button>
-    <div class="hint" style="margin-top:10px">Ряды одной пары идут спина к спине. Распорки считаются на стойки пары.</div>
-  </div>
-
-  <!-- АКСЕССУАРЫ -->
-  <div class="acc-panel">
-    <div class="panel-title">Аксессуары</div>
-    <div class="toggle-row">
-      <span class="toggle-label">Защитные барьеры</span>
-      <label class="toggle"><input type="checkbox" id="add_barriers" checked onchange="calc()"><span class="slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <span class="toggle-label">Уголки на ножки</span>
-      <label class="toggle"><input type="checkbox" id="add_corners" checked onchange="calc()"><span class="slider"></span></label>
-    </div>
-  </div>
-
-  <!-- РЕЗУЛЬТАТ -->
-  <div class="result-panel">
-    <div class="panel-title">Результат расчёта</div>
-    <div class="warning" id="warning"></div>
-    <div class="result-grid" id="result_grid">
-      <div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Заполните параметры и добавьте ряды</div>
-    </div>
-    <div class="total-block" id="total_block" style="display:none">
-      <div>
-        <div class="lbl">Итого EXW</div>
-        <div style="font-size:0.7rem;color:var(--muted);margin-top:6px;line-height:1.7" id="total_note"></div>
+    <!-- ОБЩИЕ ПАРАМЕТРЫ -->
+    <div class="global-panel">
+      <div class="panel-title">Общие параметры</div>
+      <div class="field">
+        <label>Макс. вес на поддон (кг)</label>
+        <input type="number" id="weight" placeholder="например 1500" min="1" oninput="calc()">
       </div>
-      <div class="amount" id="total_amount">— <span>USD</span></div>
+      <div class="field">
+        <label>Высота стеллажа (мм)</label>
+        <input type="number" id="height" placeholder="например 5000" min="1" oninput="calc()">
+        <div class="hint" id="height-hint">3000 / 4050 / 5025 / 6000 / 7050 / 8025</div>
+      </div>
+      <div class="field">
+        <label>Количество ярусов</label>
+        <input type="number" id="tiers" placeholder="например 3" min="1" max="10" oninput="calc()">
+        <div class="hint">1 ярус → 2 полки · 2+ ярусов → полок = ярусов</div>
+      </div>
+      <div class="divider"></div>
+      <div class="note-block">
+        <b style="color:var(--text)">Стойка</b> = пара стоек ш.1000 мм &nbsp;·&nbsp;
+        <b style="color:var(--text)">Балок</b> = полок × секций × 2 &nbsp;·&nbsp;
+        <b style="color:var(--text)">Уголок</b> и <b style="color:var(--text)">Барьер</b> — количество задаётся в блоке «Аксессуары» ниже
+      </div>
+    </div>
+
+    <!-- РЯДЫ -->
+    <div class="rows-header">
+      <h2>Ряды стеллажей</h2>
+      <button class="btn-add" onclick="addRow()">+ Добавить ряд</button>
+    </div>
+    <div id="rows-container"></div>
+
+    <!-- ПАРЫ -->
+    <div class="pairs-panel">
+      <div class="panel-title">Ряды спина к спине (пары)</div>
+      <div id="pairs-container"></div>
+      <button class="btn-add-pair" onclick="addPair()">+ Добавить пару</button>
+      <div class="hint" style="margin-top:10px">Ряды одной пары идут спина к спине. Распорки считаются на стойки пары.</div>
+    </div>
+
+    <!-- АКСЕССУАРЫ -->
+    <div class="acc-panel">
+      <div class="panel-title">Аксессуары</div>
+      <div class="toggle-row">
+        <span class="toggle-label">Защитные барьеры</span>
+        <input type="number" class="qty-input" id="barriers_per_row" value="2" min="0" oninput="calc()">
+        <label class="toggle"><input type="checkbox" id="add_barriers" checked onchange="calc()"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Уголки на ножки</span>
+        <input type="number" class="qty-input" id="corners_per_col" value="2" min="0" oninput="calc()">
+        <label class="toggle"><input type="checkbox" id="add_corners" checked onchange="calc()"><span class="slider"></span></label>
+      </div>
+      <div class="hint" style="grid-column:1/-1">Число рядом с переключателем — количество штук на 1 ряд (барьеры) / на 1 стойку (уголки). По умолчанию: 2 и 2 — как раньше.</div>
+    </div>
+
+    <!-- РЕЗУЛЬТАТ -->
+    <div class="result-panel">
+      <div class="result-header">
+        <div class="panel-title">Результат расчёта</div>
+        <button class="btn-add" id="btn-pdf" onclick="downloadPDF()" disabled>⬇ Скачать КП (PDF)</button>
+      </div>
+      <div class="warning" id="warning"></div>
+      <div class="result-grid" id="result_grid">
+        <div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Заполните параметры и добавьте ряды</div>
+      </div>
+      <div class="total-block" id="total_block" style="display:none">
+        <div>
+          <div class="lbl">Итого EXW</div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-top:6px;line-height:1.7" id="total_note"></div>
+        </div>
+        <div class="amount" id="total_amount">— <span>USD</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================== ВКЛАДКА: НАСТРОЙКИ ЦЕН ===================== -->
+  <div id="tab-settings" style="display:none">
+    <div class="settings-panel">
+      <div class="panel-title">Настройки цен и размеров</div>
+      <div class="hint" style="margin-bottom:6px">Здесь можно изменить цены и характеристики деталей, а также добавить новые высоты стоек и артикулы балок. Изменения сохраняются автоматически и сразу применяются в расчёте.</div>
+
+      <div class="settings-block-title">Стойки (по высоте)</div>
+      <div class="settings-header">
+        <span>Высота, мм</span><span>Цена 90×70, USD</span><span>Цена 100×70, USD</span><span></span>
+      </div>
+      <div id="columns-table-body"></div>
+      <button class="btn-add-pair" onclick="addColumn()">+ Добавить высоту стойки</button>
+
+      <div class="divider"></div>
+
+      <div class="settings-block-title">Балки L=1900 мм (2 поддона)</div>
+      <div class="settings-header">
+        <span>Артикул</span><span>Нагрузка, кг/поддон</span><span>Цена, USD</span><span></span>
+      </div>
+      <div id="beams1900-table-body"></div>
+      <button class="btn-add-pair" onclick="addBeam('1900')">+ Добавить артикул</button>
+
+      <div class="divider"></div>
+
+      <div class="settings-block-title">Балки L=2800 мм (3 поддона)</div>
+      <div class="settings-header">
+        <span>Артикул</span><span>Нагрузка, кг/поддон</span><span>Цена, USD</span><span></span>
+      </div>
+      <div id="beams2800-table-body"></div>
+      <button class="btn-add-pair" onclick="addBeam('2800')">+ Добавить артикул</button>
+
+      <div class="divider"></div>
+
+      <div class="settings-block-title">Прочие детали</div>
+      <div class="row-fields">
+        <div class="field"><label>Уголок, USD/шт</label><input type="number" step="0.0001" id="set_corner" oninput="updateAccessoryPrice('cornerPrice', this.value)"></div>
+        <div class="field"><label>Барьер, USD/шт</label><input type="number" step="0.0001" id="set_barrier" oninput="updateAccessoryPrice('barrierPrice', this.value)"></div>
+        <div class="field"><label>Распорка, USD/шт</label><input type="number" step="0.0001" id="set_brace" oninput="updateAccessoryPrice('bracePrice', this.value)"></div>
+      </div>
+
+      <div class="markup-block">
+        <div class="field">
+          <label style="color:var(--accent)">Наценка на все детали, %</label>
+          <input type="number" step="1" id="set_markup" placeholder="например 50" oninput="updateMarkup(this.value)">
+          <div class="hint">Наценка прибавляется к цене каждой детали. В результате расчёта и в PDF-КП показывается уже цена с наценкой — сам процент нигде не отображается.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <button class="btn-danger-outline" onclick="resetDefaults()">Сбросить все настройки к заводским</button>
+      </div>
     </div>
   </div>
 
 </div>
 
 <script>
-// ===== ДАННЫЕ =====
-const beams1900 = [
-  { spec: 'BD10050-1.5', load: 1300, price: 6.6243 },
-  { spec: 'BH10050-1.5', load: 1700, price: 7.5118 },
-  { spec: 'BD12050×1.5', load: 2000, price: 7.2895 },
-  { spec: 'BH12050-1.5', load: 2500, price: 8.1786 },
-];
-const beams2800 = [
-  { spec: 'BD10050-1.5', load: 400,  price: 9.3549 },
-  { spec: 'BH10050-1.5', load: 520,  price: 10.6658 },
-  { spec: 'BD12050×1.5', load: 640,  price: 10.3381 },
-  { spec: 'BH12050-1.5', load: 800,  price: 11.6490 },
-  { spec: 'BH14050-1.5', load: 1150, price: 12.9583 },
-];
-const COLUMNS = [
-  { h: 3000, p90: 25.9571, p100: 28.3826 },
-  { h: 4050, p90: 33.3083, p100: 36.1215 },
-  { h: 5025, p90: 41.0310, p100: 44.4689 },
-  { h: 6000, p90: 48.7164, p100: 52.7335 },
-  { h: 7050, p90: 56.0237, p100: 60.4724 },
-  { h: 8025, p90: 63.7903, p100: 68.8198 },
-];
-const CORNER_PRICE  = 3.1524;
-const BARRIER_PRICE = 11.5857;
-const BRACE_PRICE   = 1.1633;
+// ===== ЦЕНЫ И РАЗМЕРЫ ПО УМОЛЧАНИЮ ("ЗАВОДСКИЕ") =====
+const FACTORY_DEFAULTS = {
+  beams1900: [
+    { spec: 'BD10050-1.5', load: 1300, price: 6.6243 },
+    { spec: 'BH10050-1.5', load: 1700, price: 7.5118 },
+    { spec: 'BD12050×1.5', load: 2000, price: 7.2895 },
+    { spec: 'BH12050-1.5', load: 2500, price: 8.1786 },
+  ],
+  beams2800: [
+    { spec: 'BD10050-1.5', load: 400,  price: 9.3549 },
+    { spec: 'BH10050-1.5', load: 520,  price: 10.6658 },
+    { spec: 'BD12050×1.5', load: 640,  price: 10.3381 },
+    { spec: 'BH12050-1.5', load: 800,  price: 11.6490 },
+    { spec: 'BH14050-1.5', load: 1150, price: 12.9583 },
+  ],
+  columns: [
+    { h: 3000, p90: 25.9571, p100: 28.3826 },
+    { h: 4050, p90: 33.3083, p100: 36.1215 },
+    { h: 5025, p90: 41.0310, p100: 44.4689 },
+    { h: 6000, p90: 48.7164, p100: 52.7335 },
+    { h: 7050, p90: 56.0237, p100: 60.4724 },
+    { h: 8025, p90: 63.7903, p100: 68.8198 },
+  ],
+  cornerPrice: 3.1524,
+  barrierPrice: 11.5857,
+  bracePrice: 1.1633,
+  markup: 0
+};
+
+const STORAGE_KEY = 'rackCalcSettings_v1';
+function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return clone(FACTORY_DEFAULTS);
+    const parsed = JSON.parse(raw);
+    return Object.assign(clone(FACTORY_DEFAULTS), parsed);
+  } catch (e) {
+    return clone(FACTORY_DEFAULTS);
+  }
+}
+function saveSettings() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+}
+
+let settings = loadSettings();
 
 let rowIdCounter = 0;
 let pairIdCounter = 0;
 let rows = [];   // [{id, name, sec1900, sec2800}]
 let pairs = [];  // [{id, rowA, rowB, bracesPerCol}]
+let lastResult = null; // последний успешный расчёт для экспорта в PDF
+
+// ===== ВКЛАДКИ =====
+function showTab(name) {
+  document.getElementById('tab-calc').style.display = name === 'calc' ? '' : 'none';
+  document.getElementById('tab-settings').style.display = name === 'settings' ? '' : 'none';
+  document.getElementById('tab-btn-calc').classList.toggle('active', name === 'calc');
+  document.getElementById('tab-btn-settings').classList.toggle('active', name === 'settings');
+  if (name === 'settings') renderSettingsTab();
+}
+
+// ===== НАСТРОЙКИ ЦЕН =====
+function renderSettingsTab() {
+  renderColumnsTable();
+  renderBeamsTable('1900');
+  renderBeamsTable('2800');
+  document.getElementById('set_corner').value = settings.cornerPrice;
+  document.getElementById('set_barrier').value = settings.barrierPrice;
+  document.getElementById('set_brace').value = settings.bracePrice;
+  document.getElementById('set_markup').value = settings.markup;
+}
+
+function renderColumnsTable() {
+  const el = document.getElementById('columns-table-body');
+  el.innerHTML = settings.columns.map((c, i) => `
+    <div class="settings-row">
+      <input type="number" value="${c.h}" oninput="updateColumn(${i},'h',this.value)" placeholder="Высота, мм">
+      <input type="number" step="0.0001" value="${c.p90}" oninput="updateColumn(${i},'p90',this.value)" placeholder="Цена 90×70">
+      <input type="number" step="0.0001" value="${c.p100}" oninput="updateColumn(${i},'p100',this.value)" placeholder="Цена 100×70">
+      <button class="btn-remove-pair" onclick="removeColumn(${i})">✕</button>
+    </div>`).join('');
+}
+function updateColumn(i, field, val) { settings.columns[i][field] = parseFloat(val) || 0; saveSettings(); calc(); }
+function removeColumn(i) { settings.columns.splice(i, 1); saveSettings(); renderColumnsTable(); calc(); }
+function addColumn() { settings.columns.push({ h: 0, p90: 0, p100: 0 }); saveSettings(); renderColumnsTable(); }
+
+function renderBeamsTable(len) {
+  const arr = settings['beams' + len];
+  const el = document.getElementById('beams' + len + '-table-body');
+  el.innerHTML = arr.map((b, i) => `
+    <div class="settings-row">
+      <input type="text" value="${b.spec}" oninput="updateBeam('${len}',${i},'spec',this.value)" placeholder="Артикул">
+      <input type="number" value="${b.load}" oninput="updateBeam('${len}',${i},'load',this.value)" placeholder="Нагрузка, кг">
+      <input type="number" step="0.0001" value="${b.price}" oninput="updateBeam('${len}',${i},'price',this.value)" placeholder="Цена">
+      <button class="btn-remove-pair" onclick="removeBeam('${len}',${i})">✕</button>
+    </div>`).join('');
+}
+function updateBeam(len, i, field, val) {
+  const arr = settings['beams' + len];
+  arr[i][field] = field === 'spec' ? val : (parseFloat(val) || 0);
+  saveSettings(); calc();
+}
+function removeBeam(len, i) { settings['beams' + len].splice(i, 1); saveSettings(); renderBeamsTable(len); calc(); }
+function addBeam(len) { settings['beams' + len].push({ spec: 'Новый артикул', load: 0, price: 0 }); saveSettings(); renderBeamsTable(len); }
+
+function updateAccessoryPrice(field, val) { settings[field] = parseFloat(val) || 0; saveSettings(); calc(); }
+function updateMarkup(val) { settings.markup = parseFloat(val) || 0; saveSettings(); calc(); }
+
+function resetDefaults() {
+  if (!confirm('Сбросить все цены и размеры к заводским значениям? Наценка тоже будет обнулена.')) return;
+  settings = clone(FACTORY_DEFAULTS);
+  saveSettings();
+  renderSettingsTab();
+  calc();
+}
 
 // ===== РЯДЫ =====
 function addRow() {
@@ -335,32 +517,41 @@ function calc() {
   const tiers  = parseInt(document.getElementById('tiers').value);
   const addBarriers = document.getElementById('add_barriers').checked;
   const addCorners  = document.getElementById('add_corners').checked;
+  const barriersPerRow = parseInt(document.getElementById('barriers_per_row').value) || 0;
+  const cornersPerCol  = parseInt(document.getElementById('corners_per_col').value) || 0;
 
   const grid   = document.getElementById('result_grid');
   const warn   = document.getElementById('warning');
   const totBlk = document.getElementById('total_block');
+  const pdfBtn = document.getElementById('btn-pdf');
   warn.classList.remove('visible'); warn.innerHTML = '';
 
   if (!weight || !height || !tiers || isNaN(weight) || isNaN(height) || isNaN(tiers) || rows.length === 0) {
     grid.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Заполните общие параметры и добавьте ряды</div>';
-    totBlk.style.display = 'none'; return;
+    totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
+
+  const markupMult = 1 + ((settings.markup || 0) / 100);
+  const columnsSorted   = [...settings.columns].sort((a, b) => a.h - b.h);
+  const beams1900Sorted = [...settings.beams1900].sort((a, b) => a.load - b.load);
+  const beams2800Sorted = [...settings.beams2800].sort((a, b) => a.load - b.load);
 
   const warnings = [];
   const shelves = tiers === 1 ? 2 : tiers;
 
   // Подбор стойки
-  const col = COLUMNS.find(c => c.h >= height);
+  const col = columnsSorted.find(c => c.h >= height);
   if (!col) {
-    warn.innerHTML = `Высота ${height} мм превышает максимум 8025 мм.`;
-    warn.classList.add('visible'); grid.innerHTML = ''; totBlk.style.display = 'none'; return;
+    const maxH = columnsSorted.length ? columnsSorted[columnsSorted.length - 1].h : 0;
+    warn.innerHTML = `Высота ${height} мм превышает максимум ${maxH} мм.`;
+    warn.classList.add('visible'); grid.innerHTML = ''; totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
 
   // Подбор балок
-  const beam1 = beams1900.find(b => b.load >= weight);
-  const beam2 = beams2800.find(b => b.load >= weight);
-  if (!beam1) warnings.push(`⚠ L=1900: нет балки ≥ ${weight} кг/поддон. Макс: ${beams1900[beams1900.length-1].load} кг.`);
-  if (!beam2) warnings.push(`⚠ L=2800: нет балки ≥ ${weight} кг/поддон. Макс: ${beams2800[beams2800.length-1].load} кг.`);
+  const beam1 = beams1900Sorted.find(b => b.load >= weight);
+  const beam2 = beams2800Sorted.find(b => b.load >= weight);
+  if (!beam1 && beams1900Sorted.length) warnings.push(`⚠ L=1900: нет балки ≥ ${weight} кг/поддон. Макс: ${beams1900Sorted[beams1900Sorted.length-1].load} кг.`);
+  if (!beam2 && beams2800Sorted.length) warnings.push(`⚠ L=2800: нет балки ≥ ${weight} кг/поддон. Макс: ${beams2800Sorted[beams2800Sorted.length-1].load} кг.`);
 
   // Считаем по каждому ряду
   let totalColumns = 0, totalB1900 = 0, totalB2800 = 0;
@@ -379,14 +570,15 @@ function calc() {
     return Math.max(m, p);
   }, 0);
   const loadPerCol = shelves * weight * maxPallets;
-  let colSpec, colPrice;
-  if (loadPerCol <= 8000)       { colSpec = 'Стойка 90×70-2.0мм (до 8000 кг)';  colPrice = col.p90; }
-  else if (loadPerCol <= 11000) { colSpec = 'Стойка 100×70-2.0мм (до 11000 кг)'; colPrice = col.p100; }
-  else { warnings.push(`⚠ Нагрузка на стойку ~${Math.round(loadPerCol)} кг > 11000 кг — уточните у поставщика.`); colSpec = 'Стойка 100×70-2.0мм (до 11000 кг)'; colPrice = col.p100; }
+  let colSpec, colPriceBase;
+  if (loadPerCol <= 8000)       { colSpec = 'Стойка 90×70-2.0мм (до 8000 кг)';  colPriceBase = col.p90; }
+  else if (loadPerCol <= 11000) { colSpec = 'Стойка 100×70-2.0мм (до 11000 кг)'; colPriceBase = col.p100; }
+  else { warnings.push(`⚠ Нагрузка на стойку ~${Math.round(loadPerCol)} кг > 11000 кг — уточните у поставщика.`); colSpec = 'Стойка 100×70-2.0мм (до 11000 кг)'; colPriceBase = col.p100; }
+  const colPrice = colPriceBase * markupMult;
 
   // Аксессуары
-  const numCorners  = addCorners  ? totalColumns * 2 : 0;
-  const numBarriers = addBarriers ? rows.filter(r => (r.sec1900+r.sec2800) > 0).length * 2 : 0;
+  const numCorners  = addCorners  ? totalColumns * cornersPerCol : 0;
+  const numBarriers = addBarriers ? rows.filter(r => (r.sec1900+r.sec2800) > 0).length * barriersPerRow : 0;
 
   // Распорки по парам
   let totalBraces = 0;
@@ -405,13 +597,20 @@ function calc() {
     bracesDetail.push(`${rA.name}+${rB.name}: ${pairCols} стоек × ${p.bracesPerCol} = ${n} шт.`);
   });
 
+  // Цены за единицу (с наценкой)
+  const beam1Price   = (beam1 ? beam1.price : 0) * markupMult;
+  const beam2Price   = (beam2 ? beam2.price : 0) * markupMult;
+  const cornerPrice  = settings.cornerPrice * markupMult;
+  const barrierPrice = settings.barrierPrice * markupMult;
+  const bracePrice   = settings.bracePrice * markupMult;
+
   // Стоимости
   const costCols     = totalColumns * colPrice;
-  const costB1900    = totalB1900 * (beam1 ? beam1.price : 0);
-  const costB2800    = totalB2800 * (beam2 ? beam2.price : 0);
-  const costCorners  = numCorners  * CORNER_PRICE;
-  const costBarriers = numBarriers * BARRIER_PRICE;
-  const costBraces   = totalBraces * BRACE_PRICE;
+  const costB1900    = totalB1900 * beam1Price;
+  const costB2800    = totalB2800 * beam2Price;
+  const costCorners  = numCorners  * cornerPrice;
+  const costBarriers = numBarriers * barrierPrice;
+  const costBraces   = totalBraces * bracePrice;
   const total = costCols + costB1900 + costB2800 + costCorners + costBarriers + costBraces;
 
   if (warnings.length) { warn.innerHTML = warnings.join('<br>'); warn.classList.add('visible'); }
@@ -429,32 +628,32 @@ function calc() {
   if (totalB1900 > 0 && beam1) items.push({
     qty: totalB1900, name: 'Балки L=1900',
     spec: `${beam1.spec}<br>до ${beam1.load} кг/поддон`,
-    price: costB1900, up: beam1.price
+    price: costB1900, up: beam1Price
   });
   if (totalB2800 > 0 && beam2) items.push({
     qty: totalB2800, name: 'Балки L=2800',
     spec: `${beam2.spec}<br>до ${beam2.load} кг/поддон`,
-    price: costB2800, up: beam2.price
+    price: costB2800, up: beam2Price
   });
   if (addCorners && numCorners > 0) items.push({
     qty: numCorners, name: 'Уголки L-образные',
-    spec: `H=300, t=5.0<br>${totalColumns} стоек × 2`,
-    price: costCorners, up: CORNER_PRICE
+    spec: `H=300, t=5.0<br>${totalColumns} стоек × ${cornersPerCol}`,
+    price: costCorners, up: cornerPrice
   });
   if (addBarriers && numBarriers > 0) items.push({
     qty: numBarriers, name: 'Защитные барьеры',
-    spec: `H500×L1000, φ76-2.5<br>${rows.filter(r=>(r.sec1900+r.sec2800)>0).length} рядов × 2`,
-    price: costBarriers, up: BARRIER_PRICE
+    spec: `H500×L1000, φ76-2.5<br>${rows.filter(r=>(r.sec1900+r.sec2800)>0).length} рядов × ${barriersPerRow}`,
+    price: costBarriers, up: barrierPrice
   });
   if (totalBraces > 0) items.push({
     qty: totalBraces, name: 'Распорки',
     spec: `L=300, F5030-1.5<br>${bracesDetail.join('<br>')}`,
-    price: costBraces, up: BRACE_PRICE
+    price: costBraces, up: bracePrice
   });
 
   if (items.length === 0) {
     grid.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">Добавьте секции в ряды</div>';
-    totBlk.style.display = 'none'; return;
+    totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
 
   grid.innerHTML = items.map(it => `
@@ -472,6 +671,85 @@ function calc() {
   document.getElementById('total_note').innerHTML =
     `${rows.length} рядов · ${tiers} яр. (${shelves} полок) · H=${col.h} мм<br>${rowsSummary}`;
   totBlk.style.display = 'flex';
+
+  lastResult = {
+    items, total,
+    meta: { rowsCount: rows.length, tiers, shelves, height: col.h, rowsSummary }
+  };
+  pdfBtn.disabled = false;
+}
+
+// ===== ЭКСПОРТ В PDF (КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ) =====
+function buildKPElement(result) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:760px; background:#ffffff; color:#111827; font-family:Arial, Helvetica, sans-serif; padding:28px;';
+  const dateStr = new Date().toLocaleDateString('ru-RU');
+
+  const rowsHtml = result.items.map(it => `
+    <tr>
+      <td style="padding:9px 10px;border:1px solid #d1d5db">${it.name}</td>
+      <td style="padding:9px 10px;border:1px solid #d1d5db">${it.spec.replace(/<br>/g, ' · ')}</td>
+      <td style="padding:9px 10px;border:1px solid #d1d5db;text-align:center">${it.qty}</td>
+      <td style="padding:9px 10px;border:1px solid #d1d5db;text-align:right">${it.up.toFixed(2)}</td>
+      <td style="padding:9px 10px;border:1px solid #d1d5db;text-align:right;font-weight:bold">${it.price.toFixed(2)}</td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `
+    <h1 style="font-size:22px;margin-bottom:4px;color:#111827">Коммерческое предложение</h1>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:18px">
+      Дата: ${dateStr} · Тяжёлый паллетный стеллаж · Цены EXW, USD<br>
+      ${result.meta.rowsCount} рядов · ${result.meta.tiers} яр. (${result.meta.shelves} полок) · H=${result.meta.height} мм<br>
+      ${result.meta.rowsSummary}
+    </div>
+    <table style="border-collapse:collapse;width:100%;font-size:12.5px">
+      <thead>
+        <tr style="background:#f3f4f6">
+          <th style="padding:9px 10px;border:1px solid #d1d5db;text-align:left">Наименование</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db;text-align:left">Характеристика</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db">Кол-во</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db">Цена за ед., USD</th>
+          <th style="padding:9px 10px;border:1px solid #d1d5db">Сумма, USD</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div style="text-align:right;margin-top:18px;font-size:17px;font-weight:bold;color:#111827">
+      Итого: ${Math.round(result.total).toLocaleString('ru-RU')} USD EXW
+    </div>
+  `;
+  return wrap;
+}
+
+async function downloadPDF() {
+  if (!lastResult) return;
+  if (!window.jspdf || !window.html2canvas) {
+    alert('Не удалось загрузить библиотеку формирования PDF. Проверьте подключение к интернету и обновите страницу.');
+    return;
+  }
+  const btn = document.getElementById('btn-pdf');
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Формируем PDF…';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const el = buildKPElement(lastResult);
+  document.body.appendChild(el);
+
+  try {
+    await doc.html(el, {
+      x: 20,
+      y: 20,
+      width: 555,
+      windowWidth: 800
+    });
+    const dateStr = new Date().toISOString().slice(0, 10);
+    doc.save(`KP_${dateStr}.pdf`);
+  } finally {
+    document.body.removeChild(el);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 }
 
 // Инициализация: добавить первый ряд
