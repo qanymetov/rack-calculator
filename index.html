@@ -621,7 +621,7 @@ function renderColumnsTable() {
     </div>`).join('');
   updateHeightHint();
 }
-function updateColumn(i, field, val) { settings.columns[i][field] = parseFloat(val) || 0; saveSettings(); renderColumnsTable(); calc(); }
+function updateColumn(i, field, val) { settings.columns[i][field] = parseFloat(val) || 0; saveSettings(); updateHeightHint(); calc(); }
 function removeColumn(i) { settings.columns.splice(i, 1); saveSettings(); renderColumnsTable(); calc(); }
 function addColumn() { settings.columns.push({ h: 0, p90: 0, p100: 0 }); saveSettings(); renderColumnsTable(); }
 
