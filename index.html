@@ -609,8 +609,8 @@ function setLang(newLang) {
 
 // ===== SUPABASE (общая база данных) =====
 // Заполните после создания проекта в Supabase (см. SUPABASE_SETUP.md)
-const SUPABASE_URL = '';
-const SUPABASE_ANON_KEY = '';
+const SUPABASE_URL = 'https://sicmwurthnpkwbsllipa.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpY213dXJ0aG5wa3dic2xsaXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5ODYwMTgsImV4cCI6MjA5ODU2MjAxOH0.yF3j2Gn9rnw-UJyer7hOs-ou5fIj_YllGd0cntFHZhE';
 const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
 const supabaseClient = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let currentUser = null;
@@ -656,6 +656,7 @@ function updateAuthUI() {
     if (el.id === 'admin-email' || el.id === 'admin-password') return;
     el.disabled = !loggedIn;
   });
+  loadSavedCalculationsList();
 }
 
 // ===== ЦЕНЫ И РАЗМЕРЫ ПО УМОЛЧАНИЮ ("ЗАВОДСКИЕ") =====
