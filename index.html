@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #0f1117; --surface: #181b23; --surface2: #1e2230;
@@ -122,6 +123,16 @@
   .btn-danger-outline:hover { background: rgba(224,82,82,0.12); }
   .markup-block { background: rgba(245,166,35,0.08); border: 1px solid var(--accent); border-radius: 10px; padding: 16px 18px; margin-top: 20px; }
 
+  /* ── Логин администратора / сохранённые расчёты ── */
+  .login-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .logged-in-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; background: rgba(76,175,125,0.1); border: 1px solid var(--green); border-radius: 10px; padding: 12px 16px; }
+  .logged-in-row .hint { margin: 0; color: var(--green); }
+  .saved-calc-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; margin-bottom: 8px; }
+  @media (max-width: 480px) { .saved-calc-row { grid-template-columns: 1fr; } }
+  .saved-calc-row .btn-add-pair { width: auto; margin: 0; padding: 8px 14px; }
+  .save-calc-form { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; margin-bottom: 16px; }
+  @media (max-width: 480px) { .save-calc-form { grid-template-columns: 1fr; } }
+
   /* ── Адаптивность для маленьких экранов ── */
   @media (max-width: 480px) {
     body { padding: 20px 8px 50px; }
@@ -191,6 +202,17 @@
       <div class="hint" id="i18n-pairs-hint" style="margin-top:10px">Ряды одной пары идут спина к спине. Распорки считаются на стойки пары.</div>
     </div>
 
+    <!-- СОХРАНЁННЫЕ РАСЧЁТЫ -->
+    <div class="pairs-panel" id="saved-calcs-panel" style="display:none">
+      <div class="panel-title" id="i18n-saved-title">Сохранённые расчёты</div>
+      <div class="save-calc-form">
+        <div class="field" style="margin:0"><label id="i18n-save-name-label">Название расчёта</label><input type="text" id="save-calc-name" placeholder="Например: Склад Алматы"></div>
+        <button class="btn-add" onclick="saveCalculation()" id="btn-save-calc">💾 Сохранить расчёт</button>
+      </div>
+      <div id="saved-calcs-list"></div>
+      <div class="hint" id="i18n-saved-hint">Сохранённые расчёты видны всем, у кого есть ссылка на калькулятор.</div>
+    </div>
+
     <!-- АКСЕССУАРЫ -->
     <div class="acc-panel">
       <div class="panel-title" id="i18n-acc-title">Аксессуары</div>
@@ -233,6 +255,20 @@
     <div class="settings-panel">
       <div class="panel-title" id="i18n-settings-title">Настройки цен и размеров</div>
       <div class="hint" id="i18n-settings-hint" style="margin-bottom:6px">Здесь можно изменить цены и характеристики деталей, а также добавить новые высоты стоек и артикулы балок. Изменения сохраняются автоматически и сразу применяются в расчёте.</div>
+
+      <div class="login-block" id="admin-login-form" style="display:none">
+        <div class="hint" id="i18n-login-hint">Войдите, чтобы редактировать цены и размеры. Просмотр доступен всем.</div>
+        <div class="row-fields" style="margin-top:12px">
+          <div class="field" style="margin:0"><label id="i18n-email-label">Email</label><input type="email" id="admin-email" placeholder="admin@example.com"></div>
+          <div class="field" style="margin:0"><label id="i18n-password-label">Пароль</label><input type="password" id="admin-password" placeholder="••••••••"></div>
+        </div>
+        <button class="btn-add" style="margin-top:12px" onclick="loginAdmin()" id="i18n-login-btn">Войти</button>
+        <div class="hint" id="admin-login-error" style="color:var(--red);margin-top:8px"></div>
+      </div>
+      <div class="logged-in-row" id="admin-logged-in" style="display:none">
+        <span class="hint" id="admin-logged-in-text"></span>
+        <button class="btn-remove" onclick="logoutAdmin()" id="i18n-logout-btn">Выйти</button>
+      </div>
 
       <div class="settings-block-title" id="i18n-columns-title">Стойки (по высоте)</div>
       <div class="settings-header">
@@ -368,6 +404,20 @@ const I18N = {
     kpMeta: 'Тяжёлый паллетный стеллаж · Цены EXW, USD',
     kpColName: 'Наименование', kpColSpec: 'Характеристика', kpColQty: 'Кол-во',
     kpColUnitPrice: 'Цена за ед., USD', kpColSum: 'Сумма, USD', kpTotal: 'Итого',
+    loginHint: 'Войдите, чтобы редактировать цены и размеры. Просмотр доступен всем.',
+    emailLabel: 'Email', passwordLabel: 'Пароль', loginBtn: 'Войти', logoutBtn: 'Выйти',
+    loginError: 'Неверный email или пароль.',
+    loggedInAs: 'Вы вошли как: {email}',
+    savedTitle: 'Сохранённые расчёты',
+    saveNameLabel: 'Название расчёта', saveNamePlaceholder: 'Например: Склад Алматы',
+    saveCalcBtn: '💾 Сохранить расчёт',
+    savedHint: 'Сохранённые расчёты видны всем, у кого есть ссылка на калькулятор.',
+    saveNameRequired: 'Введите название расчёта.',
+    saveError: 'Не удалось сохранить расчёт. Попробуйте ещё раз.',
+    loadBtn: 'Загрузить', loadError: 'Не удалось загрузить расчёт.',
+    deleteConfirm: 'Удалить этот сохранённый расчёт?',
+    supabaseNotConfigured: 'База данных ещё не подключена. Обратитесь к администратору.',
+    syncedHint: 'Настройки синхронизированы с общей базой — видны всем.',
   },
   zh: {
     pageTitle: '货架计算器',
@@ -450,6 +500,20 @@ const I18N = {
     kpMeta: '重型托盘货架 · EXW 价格，USD',
     kpColName: '品名', kpColSpec: '规格', kpColQty: '数量',
     kpColUnitPrice: '单价，USD', kpColSum: '金额，USD', kpTotal: '总计',
+    loginHint: '登录后可编辑价格和尺寸。所有人都可以查看。',
+    emailLabel: '邮箱', passwordLabel: '密码', loginBtn: '登录', logoutBtn: '退出登录',
+    loginError: '邮箱或密码错误。',
+    loggedInAs: '当前登录：{email}',
+    savedTitle: '已保存的计算',
+    saveNameLabel: '计算名称', saveNamePlaceholder: '例如：阿拉木图仓库',
+    saveCalcBtn: '💾 保存计算',
+    savedHint: '已保存的计算对所有拥有此链接的人可见。',
+    saveNameRequired: '请输入计算名称。',
+    saveError: '保存失败，请重试。',
+    loadBtn: '加载', loadError: '加载失败。',
+    deleteConfirm: '确定要删除这个已保存的计算吗？',
+    supabaseNotConfigured: '数据库尚未连接，请联系管理员。',
+    syncedHint: '设置已与共享数据库同步 —— 所有人可见。',
   }
 };
 
@@ -489,6 +553,10 @@ const STATIC_TEXT_MAP = {
   'i18n-corner-price-label': 'cornerPriceLabel', 'i18n-barrier-price-label': 'barrierPriceLabel', 'i18n-brace-price-label': 'bracePriceLabel',
   'i18n-markup-label': 'markupLabel', 'i18n-markup-hint': 'markupHint',
   'btn-reset-defaults': 'resetBtn',
+  'i18n-login-hint': 'loginHint', 'i18n-email-label': 'emailLabel', 'i18n-password-label': 'passwordLabel',
+  'i18n-login-btn': 'loginBtn', 'i18n-logout-btn': 'logoutBtn',
+  'i18n-saved-title': 'savedTitle', 'i18n-save-name-label': 'saveNameLabel',
+  'btn-save-calc': 'saveCalcBtn', 'i18n-saved-hint': 'savedHint',
 };
 
 function updateNoteBlock() {
@@ -516,8 +584,11 @@ function applyStaticText() {
   document.getElementById('height').placeholder = t('heightPlaceholder');
   document.getElementById('tiers').placeholder = t('tiersPlaceholder');
   document.getElementById('set_markup').placeholder = t('markupPlaceholder');
+  document.getElementById('save-calc-name').placeholder = t('saveNamePlaceholder');
   updateNoteBlock();
   updateHeightHint();
+  updateAuthUI();
+  loadSavedCalculationsList();
 }
 
 function setLang(newLang) {
@@ -534,6 +605,57 @@ function setLang(newLang) {
   document.getElementById('set_brace').value = settings.bracePrice;
   document.getElementById('set_markup').value = settings.markup;
   calc();
+}
+
+// ===== SUPABASE (общая база данных) =====
+// Заполните после создания проекта в Supabase (см. SUPABASE_SETUP.md)
+const SUPABASE_URL = '';
+const SUPABASE_ANON_KEY = '';
+const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
+const supabaseClient = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let currentUser = null;
+
+async function initAuth() {
+  if (!isSupabaseConfigured) return;
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  currentUser = session ? session.user : null;
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    currentUser = session ? session.user : null;
+    updateAuthUI();
+  });
+  updateAuthUI();
+}
+
+async function loginAdmin() {
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-password').value;
+  const errEl = document.getElementById('admin-login-error');
+  errEl.textContent = '';
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = t('loginError'); return; }
+  currentUser = data.user;
+  document.getElementById('admin-password').value = '';
+  updateAuthUI();
+}
+
+async function logoutAdmin() {
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  updateAuthUI();
+}
+
+function updateAuthUI() {
+  const loginForm = document.getElementById('admin-login-form');
+  const loggedInRow = document.getElementById('admin-logged-in');
+  if (!isSupabaseConfigured) { loginForm.style.display = 'none'; loggedInRow.style.display = 'none'; return; }
+  const loggedIn = !!currentUser;
+  loginForm.style.display = loggedIn ? 'none' : '';
+  loggedInRow.style.display = loggedIn ? '' : 'none';
+  if (loggedIn) document.getElementById('admin-logged-in-text').textContent = t('loggedInAs', { email: currentUser.email });
+  document.querySelectorAll('#tab-settings input, #tab-settings .settings-row button, #btn-add-column, #btn-add-beam1900, #btn-add-beam2800, #btn-reset-defaults').forEach(el => {
+    if (el.id === 'admin-email' || el.id === 'admin-password') return;
+    el.disabled = !loggedIn;
+  });
 }
 
 // ===== ЦЕНЫ И РАЗМЕРЫ ПО УМОЛЧАНИЮ ("ЗАВОДСКИЕ") =====
@@ -580,6 +702,25 @@ function loadSettings() {
 }
 function saveSettings() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  if (isSupabaseConfigured && currentUser) {
+    supabaseClient.from('rack_settings').upsert({ id: 1, data: settings, updated_at: new Date().toISOString() })
+      .then(({ error }) => { if (error) console.error('Supabase settings save failed', error); });
+  }
+}
+
+async function fetchRemoteSettings() {
+  if (!isSupabaseConfigured) return;
+  try {
+    const { data, error } = await supabaseClient.from('rack_settings').select('data').eq('id', 1).single();
+    if (!error && data && data.data) {
+      settings = Object.assign(clone(FACTORY_DEFAULTS), data.data);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      renderSettingsTab();
+      calc();
+    }
+  } catch (e) {
+    console.error('Supabase settings fetch failed', e);
+  }
 }
 
 let settings = loadSettings();
@@ -1027,9 +1168,78 @@ async function downloadPDF() {
   }
 }
 
+// ===== СОХРАНЁННЫЕ РАСЧЁТЫ =====
+async function saveCalculation() {
+  if (!isSupabaseConfigured) { alert(t('supabaseNotConfigured')); return; }
+  const nameInput = document.getElementById('save-calc-name');
+  const name = nameInput.value.trim();
+  if (!name) { alert(t('saveNameRequired')); return; }
+  const payload = {
+    weight: document.getElementById('weight').value,
+    height: document.getElementById('height').value,
+    tiers: document.getElementById('tiers').value,
+    addBarriers: document.getElementById('add_barriers').checked,
+    addCorners: document.getElementById('add_corners').checked,
+    barriersPerRow: document.getElementById('barriers_per_row').value,
+    cornersPerCol: document.getElementById('corners_per_col').value,
+    rows, pairs
+  };
+  const { error } = await supabaseClient.from('rack_calculations').insert({ name, data: payload });
+  if (error) { alert(t('saveError')); return; }
+  nameInput.value = '';
+  loadSavedCalculationsList();
+}
+
+async function loadSavedCalculationsList() {
+  const panel = document.getElementById('saved-calcs-panel');
+  if (!isSupabaseConfigured) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  const { data, error } = await supabaseClient.from('rack_calculations')
+    .select('id,name,created_at').order('created_at', { ascending: false }).limit(50);
+  const el = document.getElementById('saved-calcs-list');
+  if (error || !data || data.length === 0) { el.innerHTML = ''; return; }
+  const dateLocale = lang === 'zh' ? 'zh-CN' : 'ru-RU';
+  el.innerHTML = data.map(c => `
+    <div class="saved-calc-row">
+      <div>${c.name}<div class="hint">${new Date(c.created_at).toLocaleString(dateLocale)}</div></div>
+      <button class="btn-add-pair" onclick="loadCalculation('${c.id}')">${t('loadBtn')}</button>
+      <button class="btn-remove-pair" onclick="deleteCalculation('${c.id}')" ${currentUser ? '' : 'disabled'}>✕</button>
+    </div>`).join('');
+}
+
+async function loadCalculation(id) {
+  const { data, error } = await supabaseClient.from('rack_calculations').select('data').eq('id', id).single();
+  if (error || !data) { alert(t('loadError')); return; }
+  const d = data.data;
+  document.getElementById('weight').value = d.weight;
+  document.getElementById('height').value = d.height;
+  document.getElementById('tiers').value = d.tiers;
+  document.getElementById('add_barriers').checked = d.addBarriers;
+  document.getElementById('add_corners').checked = d.addCorners;
+  document.getElementById('barriers_per_row').value = d.barriersPerRow;
+  document.getElementById('corners_per_col').value = d.cornersPerCol;
+  rows = d.rows || [];
+  pairs = d.pairs || [];
+  rowIdCounter = rows.reduce((m, r) => Math.max(m, r.id), 0);
+  pairIdCounter = pairs.reduce((m, p) => Math.max(m, p.id), 0);
+  renderRows();
+  renderPairs();
+  calc();
+}
+
+async function deleteCalculation(id) {
+  if (!currentUser) return;
+  if (!confirm(t('deleteConfirm'))) return;
+  await supabaseClient.from('rack_calculations').delete().eq('id', id);
+  loadSavedCalculationsList();
+}
+
 // Инициализация
 applyStaticText();
 addRow();
+initAuth();
+fetchRemoteSettings();
+loadSavedCalculationsList();
 </script>
 </body>
 </html>
