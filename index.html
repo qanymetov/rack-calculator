@@ -183,6 +183,11 @@
         <input type="number" id="tiers" placeholder="например 3" min="1" max="10" oninput="calc()">
         <div class="hint" id="i18n-tiers-hint">1 ярус → 2 полки · 2+ ярусов → полок = ярусов</div>
       </div>
+      <div class="field">
+        <label id="i18n-grade-label">Серия стали</label>
+        <select id="steel_grade" onchange="onGradeChange()"></select>
+        <div class="hint" id="i18n-grade-hint">Цены и подбор стоек/балок берутся для выбранной серии</div>
+      </div>
       <div class="divider"></div>
       <div class="note-block" id="note-block"></div>
     </div>
@@ -270,9 +275,18 @@
         <button class="btn-remove" onclick="logoutAdmin()" id="i18n-logout-btn">Выйти</button>
       </div>
 
+      <div class="settings-block-title" id="i18n-grades-title">Серии стали</div>
+      <div class="settings-header" style="grid-template-columns:1fr auto">
+        <span id="i18n-grade-name-header">Серия</span><span></span>
+      </div>
+      <div id="grades-table-body"></div>
+      <button class="btn-add-pair" id="btn-add-grade" onclick="addGrade()">+ Добавить серию</button>
+
+      <div class="divider"></div>
+
       <div class="settings-block-title" id="i18n-profiles-title">Профили стоек (сечение)</div>
-      <div class="settings-header" style="grid-template-columns:1fr 1fr auto">
-        <span id="i18n-profile-name-header">Сечение</span><span id="i18n-profile-load-header">Макс. нагрузка, кг</span><span></span>
+      <div class="settings-header" style="grid-template-columns:1fr 1fr 1fr auto">
+        <span id="i18n-profile-name-header">Сечение</span><span id="i18n-profile-grade-header">Серия</span><span id="i18n-profile-load-header">Макс. нагрузка, кг</span><span></span>
       </div>
       <div id="profiles-table-body"></div>
       <button class="btn-add-pair" id="btn-add-profile" onclick="addProfile()">+ Добавить профиль</button>
@@ -288,21 +302,12 @@
 
       <div class="divider"></div>
 
-      <div class="settings-block-title" id="i18n-beams1900-title">Балки L=1900 мм (2 поддона)</div>
-      <div class="settings-header">
-        <span id="i18n-beams1900-article-header">Артикул</span><span id="i18n-beams1900-load-header">Нагрузка, кг/поддон</span><span id="i18n-beams1900-price-header">Цена, USD</span><span></span>
+      <div class="settings-block-title" id="i18n-beams-title">Балки</div>
+      <div style="overflow-x:auto">
+        <div class="settings-header" id="beams-table-header"></div>
+        <div id="beams-table-body"></div>
       </div>
-      <div id="beams1900-table-body"></div>
-      <button class="btn-add-pair" id="btn-add-beam1900" onclick="addBeam('1900')">+ Добавить артикул</button>
-
-      <div class="divider"></div>
-
-      <div class="settings-block-title" id="i18n-beams2800-title">Балки L=2800 мм (3 поддона)</div>
-      <div class="settings-header">
-        <span id="i18n-beams2800-article-header">Артикул</span><span id="i18n-beams2800-load-header">Нагрузка, кг/поддон</span><span id="i18n-beams2800-price-header">Цена, USD</span><span></span>
-      </div>
-      <div id="beams2800-table-body"></div>
-      <button class="btn-add-pair" id="btn-add-beam2800" onclick="addBeam('2800')">+ Добавить артикул</button>
+      <button class="btn-add-pair" id="btn-add-beam" onclick="addBeam()">+ Добавить артикул</button>
 
       <div class="divider"></div>
 
@@ -375,9 +380,13 @@ const I18N = {
     addSectionsHint: 'Добавьте секции в ряды',
     totalLabel: 'Итого EXW',
     settingsTitle: 'Настройки цен и размеров',
-    settingsHint: 'Здесь можно изменить цены и характеристики деталей, а также добавить новые профили (сечения) и высоты стоек, артикулы балок. Профиль стойки для расчёта подбирается автоматически по нагрузке. Изменения сохраняются автоматически.',
+    settingsHint: 'Здесь можно изменить цены и характеристики деталей, добавить серии стали, профили (сечения) и высоты стоек, артикулы балок. Серия стали выбирается на калькуляторе; профиль стойки подбирается автоматически по нагрузке. Изменения сохраняются автоматически.',
+    gradeLabel: 'Серия стали', gradeHint: 'Цены и подбор стоек/балок берутся для выбранной серии',
+    gradesSectionTitle: 'Серии стали', gradeNameHeader: 'Серия',
+    addGradeBtn: '+ Добавить серию', gradePlaceholder: 'Напр. Q355B',
+    newGradeDefault: 'Q___', gradeMinWarning: 'Должна остаться хотя бы одна серия стали.',
     profilesSectionTitle: 'Профили стоек (сечение)',
-    profileNameHeader: 'Сечение', profileLoadHeader: 'Макс. нагрузка, кг',
+    profileNameHeader: 'Сечение', profileGradeHeader: 'Серия', profileLoadHeader: 'Макс. нагрузка, кг',
     addProfileBtn: '+ Добавить профиль',
     profileNamePlaceholder: 'Напр. 120×90-2.0мм', profileLoadPlaceholder: 'Макс. нагрузка, кг',
     newProfileDefault: 'Новый профиль',
@@ -387,10 +396,13 @@ const I18N = {
     columnsSectionTitle: 'Стойки (по высоте)',
     colHeightHeader: 'Высота, мм',
     addColumnBtn: '+ Добавить высоту стойки',
-    beam1900Title: 'Балки L=1900 мм (2 поддона)',
-    beam2800Title: 'Балки L=2800 мм (3 поддона)',
+    beamsSectionTitle: 'Балки',
+    beamLengthHeader: 'Длина, мм', beamGradeHeader: 'Серия', beamPalletsHeader: 'Поддонов',
+    beamLengthPlaceholder: 'Длина', beamPalletsPlaceholder: 'Поддонов',
     articleHeader: 'Артикул', loadHeader: 'Нагрузка, кг/поддон', priceHeader: 'Цена, USD',
     addBeamBtn: '+ Добавить артикул',
+    groupLengthLabel: 'Длина балки, мм', addGroupBtn: '+ Длина балки',
+    noLengthsHint: 'Нет балок для выбранной серии — добавьте их в настройках',
     otherPartsTitle: 'Прочие детали',
     cornerPriceLabel: 'Уголок, USD/шт', barrierPriceLabel: 'Барьер, USD/шт', bracePriceLabel: 'Распорка, USD/шт',
     markupLabel: 'Наценка на все детали, %', markupPlaceholder: 'например 50',
@@ -402,9 +414,11 @@ const I18N = {
     articlePlaceholder: 'Артикул', loadPlaceholder: 'Нагрузка, кг', pricePlaceholder: 'Цена',
     pdfNotLoaded: 'Не удалось загрузить библиотеку формирования PDF. Проверьте подключение к интернету и обновите страницу.',
     heightExceeds: 'Высота {h} мм превышает максимум {max} мм.',
-    noBeamWarning: '⚠ L={len}: нет балки ≥ {weight} кг/поддон. Макс: {max} кг.',
+    noBeamWarning: '⚠ L={length} ({grade}): нет балки ≥ {weight} кг/поддон. Макс: {max} кг.',
+    noBeamsForLengthWarning: '⚠ Нет балок для длины {length} мм (серия {grade}).',
+    noProfilesForGradeWarning: '⚠ Нет профилей стоек для серии {grade}.',
     colLoadWarning: '⚠ Нагрузка на стойку ~{load} кг превышает макс. профиль {max} кг — уточните у поставщика.',
-    itemColumns: 'Стойки', itemBeam1900: 'Балки L=1900', itemBeam2800: 'Балки L=2800',
+    itemColumns: 'Стойки', itemBeamFmt: 'Балки L={length}',
     itemCorners: 'Уголки L-образные', itemBarriers: 'Защитные барьеры', itemBraces: 'Распорки',
     specHeight: 'H={h} мм', specUpTo: 'до {load} кг/поддон',
     specCornerTech: 'H=300, t=5.0', specCornerCount: '{cols} стоек × {n}',
@@ -412,8 +426,7 @@ const I18N = {
     specBraceTech: 'L=300, F5030-1.5',
     braceDetailLine: '{a}+{b}: {cols} стоек × {n} = {total} шт.',
     pieceUnit: 'шт.',
-    rowsSummaryLine: '{name}: {n1}×L1900 + {n2}×L2800',
-    totalNote: '{rows} рядов · {tiers} яр. ({shelves} полок) · H={h} мм',
+    totalNote: 'Серия {grade} · {rows} рядов · {tiers} яр. ({shelves} полок) · H={h} мм',
     defaultRowName: 'Ряд',
     kpTitle: 'Коммерческое предложение', kpDateLabel: 'Дата',
     kpMeta: 'Тяжёлый паллетный стеллаж · Цены EXW, USD',
@@ -477,9 +490,13 @@ const I18N = {
     addSectionsHint: '请在排中添加节数',
     totalLabel: 'EXW 总计',
     settingsTitle: '价格和尺寸设置',
-    settingsHint: '在这里可以修改各部件的价格和参数，也可以添加新的立柱型材（截面）、高度和横梁型号。计算时会根据承重自动选择立柱型材。更改会自动保存。',
+    settingsHint: '在这里可以修改各部件的价格和参数，添加钢材系列、立柱型材（截面）和高度、横梁型号。钢材系列在计算器中选择；立柱型材根据承重自动选择。更改会自动保存。',
+    gradeLabel: '钢材系列', gradeHint: '价格及立柱/横梁选型按所选系列计算',
+    gradesSectionTitle: '钢材系列', gradeNameHeader: '系列',
+    addGradeBtn: '+ 添加系列', gradePlaceholder: '例如 Q355B',
+    newGradeDefault: 'Q___', gradeMinWarning: '至少需要保留一个钢材系列。',
     profilesSectionTitle: '立柱型材（截面）',
-    profileNameHeader: '截面', profileLoadHeader: '最大承重，kg',
+    profileNameHeader: '截面', profileGradeHeader: '系列', profileLoadHeader: '最大承重，kg',
     addProfileBtn: '+ 添加型材',
     profileNamePlaceholder: '例如 120×90-2.0mm', profileLoadPlaceholder: '最大承重，kg',
     newProfileDefault: '新型材',
@@ -489,10 +506,13 @@ const I18N = {
     columnsSectionTitle: '立柱（按高度）',
     colHeightHeader: '高度，mm',
     addColumnBtn: '+ 添加立柱高度',
-    beam1900Title: '横梁 L=1900 mm（2托盘）',
-    beam2800Title: '横梁 L=2800 mm（3托盘）',
+    beamsSectionTitle: '横梁',
+    beamLengthHeader: '长度，mm', beamGradeHeader: '系列', beamPalletsHeader: '托盘数',
+    beamLengthPlaceholder: '长度', beamPalletsPlaceholder: '托盘数',
     articleHeader: '型号', loadHeader: '承重，kg/托盘', priceHeader: '价格，USD',
     addBeamBtn: '+ 添加型号',
+    groupLengthLabel: '横梁长度，mm', addGroupBtn: '+ 横梁长度',
+    noLengthsHint: '所选系列没有横梁 —— 请在设置中添加',
     otherPartsTitle: '其他部件',
     cornerPriceLabel: '护角，USD/件', barrierPriceLabel: '护栏，USD/件', bracePriceLabel: '撑杆，USD/件',
     markupLabel: '所有部件加价，%', markupPlaceholder: '例如 50',
@@ -504,9 +524,11 @@ const I18N = {
     articlePlaceholder: '型号', loadPlaceholder: '承重，kg', pricePlaceholder: '价格',
     pdfNotLoaded: '无法加载PDF生成库。请检查网络连接并刷新页面。',
     heightExceeds: '高度 {h} mm 超过最大值 {max} mm。',
-    noBeamWarning: '⚠ L={len}：没有承重 ≥ {weight} kg/托盘 的横梁。最大：{max} kg。',
+    noBeamWarning: '⚠ L={length}（{grade}）：没有承重 ≥ {weight} kg/托盘 的横梁。最大：{max} kg。',
+    noBeamsForLengthWarning: '⚠ 长度 {length} mm 没有横梁（系列 {grade}）。',
+    noProfilesForGradeWarning: '⚠ 系列 {grade} 没有立柱型材。',
     colLoadWarning: '⚠ 立柱承重约 {load} kg 超过最大型材 {max} kg — 请与供应商确认。',
-    itemColumns: '立柱', itemBeam1900: '横梁 L=1900', itemBeam2800: '横梁 L=2800',
+    itemColumns: '立柱', itemBeamFmt: '横梁 L={length}',
     itemCorners: 'L型护角', itemBarriers: '防护栏', itemBraces: '撑杆',
     specHeight: 'H={h} mm', specUpTo: '最大 {load} kg/托盘',
     specCornerTech: 'H=300, t=5.0', specCornerCount: '{cols} 根立柱 × {n}',
@@ -514,8 +536,7 @@ const I18N = {
     specBraceTech: 'L=300, F5030-1.5',
     braceDetailLine: '{a}+{b}：{cols} 根立柱 × {n} = {total} 件',
     pieceUnit: '件',
-    rowsSummaryLine: '{name}：{n1}×L1900 + {n2}×L2800',
-    totalNote: '{rows} 排 · {tiers} 层（{shelves} 块搁板）· H={h} mm',
+    totalNote: '系列 {grade} · {rows} 排 · {tiers} 层（{shelves} 块搁板）· H={h} mm',
     defaultRowName: '排',
     kpTitle: '报价单', kpDateLabel: '日期',
     kpMeta: '重型托盘货架 · EXW 价格，USD',
@@ -555,23 +576,22 @@ const STATIC_TEXT_MAP = {
   'i18n-general-title': 'generalParamsTitle',
   'i18n-weight-label': 'weightLabel', 'i18n-height-label': 'heightLabel',
   'i18n-tiers-label': 'tiersLabel', 'i18n-tiers-hint': 'tiersHint',
+  'i18n-grade-label': 'gradeLabel', 'i18n-grade-hint': 'gradeHint',
   'i18n-rows-title': 'rowsTitle', 'btn-add-row': 'addRowBtn',
   'i18n-pairs-title': 'pairsTitle', 'btn-add-pair': 'addPairBtn', 'i18n-pairs-hint': 'pairsHint',
   'i18n-acc-title': 'accessoriesTitle', 'i18n-barriers-label': 'barriersLabel',
   'i18n-corners-label': 'cornersLabel', 'i18n-acc-hint': 'accessoriesHint',
   'i18n-result-title': 'resultTitle', 'btn-pdf': 'pdfBtn', 'i18n-total-label': 'totalLabel',
   'i18n-settings-title': 'settingsTitle', 'i18n-settings-hint': 'settingsHint',
+  'i18n-grades-title': 'gradesSectionTitle', 'i18n-grade-name-header': 'gradeNameHeader',
+  'btn-add-grade': 'addGradeBtn',
   'i18n-profiles-title': 'profilesSectionTitle',
-  'i18n-profile-name-header': 'profileNameHeader', 'i18n-profile-load-header': 'profileLoadHeader',
+  'i18n-profile-name-header': 'profileNameHeader', 'i18n-profile-grade-header': 'profileGradeHeader', 'i18n-profile-load-header': 'profileLoadHeader',
   'btn-add-profile': 'addProfileBtn',
   'i18n-columns-title': 'columnsSectionTitle',
   'btn-add-column': 'addColumnBtn',
-  'i18n-beams1900-title': 'beam1900Title',
-  'i18n-beams1900-article-header': 'articleHeader', 'i18n-beams1900-load-header': 'loadHeader', 'i18n-beams1900-price-header': 'priceHeader',
-  'btn-add-beam1900': 'addBeamBtn',
-  'i18n-beams2800-title': 'beam2800Title',
-  'i18n-beams2800-article-header': 'articleHeader', 'i18n-beams2800-load-header': 'loadHeader', 'i18n-beams2800-price-header': 'priceHeader',
-  'btn-add-beam2800': 'addBeamBtn',
+  'i18n-beams-title': 'beamsSectionTitle',
+  'btn-add-beam': 'addBeamBtn',
   'i18n-other-parts-title': 'otherPartsTitle',
   'i18n-corner-price-label': 'cornerPriceLabel', 'i18n-barrier-price-label': 'barrierPriceLabel', 'i18n-brace-price-label': 'bracePriceLabel',
   'i18n-markup-label': 'markupLabel', 'i18n-markup-hint': 'markupHint',
@@ -594,6 +614,35 @@ function updateHeightHint() {
   document.getElementById('height-hint').textContent = heights;
 }
 
+// ===== СЕРИИ СТАЛИ И ДЛИНЫ БАЛОК (helpers) =====
+function gradesList() { return settings.steelGrades || []; }
+function getSelectedGrade() { const el = document.getElementById('steel_grade'); return el ? el.value : ''; }
+function defaultGradeWithData() {
+  const gs = gradesList();
+  const withProfiles = gs.find(g => (settings.columnProfiles || []).some(p => p.grade === g));
+  return withProfiles || gs[0] || '';
+}
+function availableLengths(grade) {
+  const set = new Set();
+  (settings.beams || []).forEach(b => { if (b.grade === grade && b.length) set.add(b.length); });
+  return [...set].sort((a, b) => a - b);
+}
+function defaultLength() { const L = availableLengths(getSelectedGrade()); return L.length ? L[0] : ''; }
+function rowSections(r) { return (r.groups || []).reduce((s, g) => s + (parseInt(g.sections) || 0), 0); }
+function renderGradeSelector() {
+  const el = document.getElementById('steel_grade');
+  if (!el) return;
+  const cur = el.value;
+  const gs = gradesList();
+  el.innerHTML = gs.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+  el.value = gs.includes(cur) ? cur : defaultGradeWithData();
+}
+function onGradeChange() {
+  renderRows();
+  renderPairs();
+  calc();
+}
+
 function applyStaticText() {
   document.title = t('pageTitle');
   document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'ru';
@@ -608,6 +657,7 @@ function applyStaticText() {
   document.getElementById('tiers').placeholder = t('tiersPlaceholder');
   document.getElementById('set_markup').placeholder = t('markupPlaceholder');
   document.getElementById('save-calc-name').placeholder = t('saveNamePlaceholder');
+  renderGradeSelector();
   updateNoteBlock();
   updateHeightHint();
   updateAuthUI();
@@ -620,11 +670,12 @@ function setLang(newLang) {
   applyStaticText();
   renderRows();
   renderPairs();
+  renderGradesTable();
   renderProfilesTable();
   renderColumnsHeader();
   renderColumnsTable();
-  renderBeamsTable('1900');
-  renderBeamsTable('2800');
+  renderBeamsHeader();
+  renderBeamsTable();
   document.getElementById('set_corner').value = settings.cornerPrice;
   document.getElementById('set_barrier').value = settings.barrierPrice;
   document.getElementById('set_brace').value = settings.bracePrice;
@@ -677,31 +728,27 @@ function updateAuthUI() {
   loginForm.style.display = loggedIn ? 'none' : '';
   loggedInRow.style.display = loggedIn ? '' : 'none';
   if (loggedIn) document.getElementById('admin-logged-in-text').textContent = t('loggedInAs', { email: currentUser.email });
-  document.querySelectorAll('#tab-settings input, #tab-settings .settings-row button, #btn-add-profile, #btn-add-column, #btn-add-beam1900, #btn-add-beam2800, #btn-reset-defaults').forEach(el => {
-    if (el.id === 'admin-email' || el.id === 'admin-password') return;
-    el.disabled = !loggedIn;
-  });
+  applyEditLock();
   loadSavedCalculationsList();
 }
 
+// Блокирует поля настроек, если включён Supabase и админ не вошёл.
+// Вызывается и после каждого перерендера таблиц настроек (иначе свежие поля не заблокированы).
+function applyEditLock() {
+  const locked = isSupabaseConfigured && !currentUser;
+  document.querySelectorAll('#tab-settings input, #tab-settings select, #tab-settings .settings-row button, #btn-add-grade, #btn-add-profile, #btn-add-column, #btn-add-beam, #btn-reset-defaults').forEach(el => {
+    if (el.id === 'admin-email' || el.id === 'admin-password') return;
+    el.disabled = locked;
+  });
+}
+
 // ===== ЦЕНЫ И РАЗМЕРЫ ПО УМОЛЧАНИЮ ("ЗАВОДСКИЕ") =====
+const MIGRATION_GRADE = 'Q235B'; // серия по умолчанию для миграции старых данных
 const FACTORY_DEFAULTS = {
-  beams1900: [
-    { spec: 'BD10050-1.5', load: 1300, price: 6.6243 },
-    { spec: 'BH10050-1.5', load: 1700, price: 7.5118 },
-    { spec: 'BD12050×1.5', load: 2000, price: 7.2895 },
-    { spec: 'BH12050-1.5', load: 2500, price: 8.1786 },
-  ],
-  beams2800: [
-    { spec: 'BD10050-1.5', load: 400,  price: 9.3549 },
-    { spec: 'BH10050-1.5', load: 520,  price: 10.6658 },
-    { spec: 'BD12050×1.5', load: 640,  price: 10.3381 },
-    { spec: 'BH12050-1.5', load: 800,  price: 11.6490 },
-    { spec: 'BH14050-1.5', load: 1150, price: 12.9583 },
-  ],
+  steelGrades: ['Q195B', 'Q235B', 'Q355B', 'Q460B'],
   columnProfiles: [
-    { name: '90×70-2.0мм',  maxLoad: 8000 },
-    { name: '100×70-2.0мм', maxLoad: 11000 },
+    { name: '90×70-2.0мм',  grade: 'Q235B', maxLoad: 8000 },
+    { name: '100×70-2.0мм', grade: 'Q235B', maxLoad: 11000 },
   ],
   columns: [
     { h: 3000, prices: [25.9571, 28.3826] },
@@ -710,6 +757,17 @@ const FACTORY_DEFAULTS = {
     { h: 6000, prices: [48.7164, 52.7335] },
     { h: 7050, prices: [56.0237, 60.4724] },
     { h: 8025, prices: [63.7903, 68.8198] },
+  ],
+  beams: [
+    { length: 1900, grade: 'Q235B', pallets: 2, spec: 'BD10050-1.5', load: 1300, price: 6.6243 },
+    { length: 1900, grade: 'Q235B', pallets: 2, spec: 'BH10050-1.5', load: 1700, price: 7.5118 },
+    { length: 1900, grade: 'Q235B', pallets: 2, spec: 'BD12050×1.5', load: 2000, price: 7.2895 },
+    { length: 1900, grade: 'Q235B', pallets: 2, spec: 'BH12050-1.5', load: 2500, price: 8.1786 },
+    { length: 2800, grade: 'Q235B', pallets: 3, spec: 'BD10050-1.5', load: 400,  price: 9.3549 },
+    { length: 2800, grade: 'Q235B', pallets: 3, spec: 'BH10050-1.5', load: 520,  price: 10.6658 },
+    { length: 2800, grade: 'Q235B', pallets: 3, spec: 'BD12050×1.5', load: 640,  price: 10.3381 },
+    { length: 2800, grade: 'Q235B', pallets: 3, spec: 'BH12050-1.5', load: 800,  price: 11.6490 },
+    { length: 2800, grade: 'Q235B', pallets: 3, spec: 'BH14050-1.5', load: 1150, price: 12.9583 },
   ],
   cornerPrice: 3.1524,
   barrierPrice: 11.5857,
@@ -721,25 +779,57 @@ const STORAGE_KEY = 'rackCalcSettings_v1';
 function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
-// Приводит настройки к актуальной структуре (миграция со старого формата стоек p90/p100)
+// Приводит настройки к актуальной структуре
+// (миграция со старого формата стоек p90/p100 и балок beams1900/beams2800)
 function normalizeSettings(s) {
+  // Серии стали
+  if (!Array.isArray(s.steelGrades) || s.steelGrades.length === 0) {
+    s.steelGrades = clone(FACTORY_DEFAULTS.steelGrades);
+  }
+  // Профили стоек: гарантируем поле grade
   if (!Array.isArray(s.columnProfiles) || s.columnProfiles.length === 0) {
     s.columnProfiles = clone(FACTORY_DEFAULTS.columnProfiles);
   }
+  s.columnProfiles = s.columnProfiles.map(p => ({
+    name: p.name || '',
+    grade: p.grade || MIGRATION_GRADE,
+    maxLoad: p.maxLoad || 0
+  }));
   const n = s.columnProfiles.length;
+  // Стойки по высоте: старый формат { h, p90, p100 } -> { h, prices[] }
   if (Array.isArray(s.columns)) {
     s.columns = s.columns.map(c => {
       let prices;
       if (Array.isArray(c.prices)) {
         prices = c.prices.slice(0, n);
       } else {
-        // старый формат { h, p90, p100 }
         prices = [c.p90 || 0, c.p100 || 0].slice(0, n);
       }
       while (prices.length < n) prices.push(0);
       return { h: c.h || 0, prices };
     });
   }
+  // Балки: старые beams1900/beams2800 -> единый beams[] с длиной, серией, поддонами.
+  // Наличие старых ключей означает старые данные — они имеют приоритет над дефолтом,
+  // подмешанным через Object.assign(FACTORY_DEFAULTS, parsed).
+  if (Array.isArray(s.beams1900) || Array.isArray(s.beams2800)) {
+    const unified = [];
+    (s.beams1900 || []).forEach(b => unified.push({ length: 1900, grade: MIGRATION_GRADE, pallets: 2, spec: b.spec || '', load: b.load || 0, price: b.price || 0 }));
+    (s.beams2800 || []).forEach(b => unified.push({ length: 2800, grade: MIGRATION_GRADE, pallets: 3, spec: b.spec || '', load: b.load || 0, price: b.price || 0 }));
+    s.beams = unified;
+  } else if (!Array.isArray(s.beams)) {
+    s.beams = clone(FACTORY_DEFAULTS.beams);
+  }
+  s.beams = s.beams.map(b => ({
+    length: b.length || 0,
+    grade: b.grade || MIGRATION_GRADE,
+    pallets: b.pallets || 0,
+    spec: b.spec || '',
+    load: b.load || 0,
+    price: b.price || 0
+  }));
+  delete s.beams1900;
+  delete s.beams2800;
   return s;
 }
 
@@ -768,7 +858,10 @@ async function fetchRemoteSettings() {
     if (!error && data && data.data) {
       settings = normalizeSettings(Object.assign(clone(FACTORY_DEFAULTS), data.data));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      renderGradeSelector();
       renderSettingsTab();
+      renderRows();
+      renderPairs();
       calc();
     }
   } catch (e) {
@@ -780,7 +873,7 @@ let settings = loadSettings();
 
 let rowIdCounter = 0;
 let pairIdCounter = 0;
-let rows = [];   // [{id, name, isCustomName, sec1900, sec2800}]
+let rows = [];   // [{id, name, isCustomName, groups:[{length, sections}]}]
 let pairs = [];  // [{id, rowA, rowB, bracesPerCol}]
 let lastResult = null; // последний успешный расчёт для экспорта в PDF
 
@@ -795,31 +888,72 @@ function showTab(name) {
 
 // ===== НАСТРОЙКИ ЦЕН =====
 function renderSettingsTab() {
+  renderGradesTable();
   renderProfilesTable();
   renderColumnsHeader();
   renderColumnsTable();
-  renderBeamsTable('1900');
-  renderBeamsTable('2800');
+  renderBeamsHeader();
+  renderBeamsTable();
   document.getElementById('set_corner').value = settings.cornerPrice;
   document.getElementById('set_barrier').value = settings.barrierPrice;
   document.getElementById('set_brace').value = settings.bracePrice;
   document.getElementById('set_markup').value = settings.markup;
+  applyEditLock();
+}
+
+function gradeSelectHtml(current, onchangeAttr) {
+  return `<select onchange="${onchangeAttr}">` +
+    gradesList().map(g => `<option value="${escapeHtml(g)}"${g === current ? ' selected' : ''}>${escapeHtml(g)}</option>`).join('') +
+    `</select>`;
+}
+
+// ── Серии стали ──
+function renderGradesTable() {
+  const el = document.getElementById('grades-table-body');
+  el.innerHTML = gradesList().map((g, i) => `
+    <div class="settings-row" style="grid-template-columns:1fr auto">
+      <input type="text" value="${escapeHtml(g)}" oninput="updateGrade(${i},this.value)" placeholder="${t('gradePlaceholder')}">
+      <button class="btn-remove-pair" onclick="removeGrade(${i})">✕</button>
+    </div>`).join('');
+}
+function updateGrade(i, val) {
+  const old = settings.steelGrades[i];
+  settings.steelGrades[i] = val;
+  // Переименование: обновляем ссылки в профилях и балках
+  (settings.columnProfiles || []).forEach(p => { if (p.grade === old) p.grade = val; });
+  (settings.beams || []).forEach(b => { if (b.grade === old) b.grade = val; });
+  saveSettings();
+  renderGradeSelector();
+  calc();
+}
+function removeGrade(i) {
+  if (settings.steelGrades.length <= 1) { alert(t('gradeMinWarning')); return; }
+  settings.steelGrades.splice(i, 1);
+  saveSettings();
+  renderGradesTable(); renderProfilesTable(); renderBeamsTable();
+  renderGradeSelector(); renderRows(); calc();
+}
+function addGrade() {
+  settings.steelGrades.push(t('newGradeDefault'));
+  saveSettings();
+  renderGradesTable(); renderGradeSelector();
 }
 
 // ── Профили стоек (сечения) ──
 function renderProfilesTable() {
   const el = document.getElementById('profiles-table-body');
   el.innerHTML = settings.columnProfiles.map((p, i) => `
-    <div class="settings-row" style="grid-template-columns:1fr 1fr auto">
+    <div class="settings-row" style="grid-template-columns:1fr 1fr 1fr auto">
       <input type="text" value="${escapeHtml(p.name)}" oninput="updateProfile(${i},'name',this.value)" placeholder="${t('profileNamePlaceholder')}">
+      ${gradeSelectHtml(p.grade, `updateProfile(${i},'grade',this.value)`)}
       <input type="number" value="${p.maxLoad}" oninput="updateProfile(${i},'maxLoad',this.value)" placeholder="${t('profileLoadPlaceholder')}">
       <button class="btn-remove-pair" onclick="removeProfile(${i})">✕</button>
     </div>`).join('');
 }
 function updateProfile(i, field, val) {
-  settings.columnProfiles[i][field] = field === 'name' ? val : (parseFloat(val) || 0);
+  settings.columnProfiles[i][field] = field === 'maxLoad' ? (parseFloat(val) || 0) : val;
   saveSettings();
-  if (field === 'name') renderColumnsHeader();
+  if (field !== 'maxLoad') renderColumnsHeader();
   calc();
 }
 function removeProfile(i) {
@@ -830,7 +964,7 @@ function removeProfile(i) {
   renderProfilesTable(); renderColumnsHeader(); renderColumnsTable(); calc();
 }
 function addProfile() {
-  settings.columnProfiles.push({ name: t('newProfileDefault'), maxLoad: 0 });
+  settings.columnProfiles.push({ name: t('newProfileDefault'), grade: defaultGradeWithData(), maxLoad: 0 });
   settings.columns.forEach(c => c.prices.push(0));
   saveSettings();
   renderProfilesTable(); renderColumnsHeader(); renderColumnsTable();
@@ -844,7 +978,7 @@ function renderColumnsHeader() {
   const el = document.getElementById('columns-table-header');
   el.style.gridTemplateColumns = columnsGridTemplate();
   el.innerHTML = `<span>${escapeHtml(t('colHeightHeader'))}</span>` +
-    settings.columnProfiles.map(p => `<span>${escapeHtml(t('colPriceForFmt', { name: p.name }))}</span>`).join('') +
+    settings.columnProfiles.map(p => `<span>${escapeHtml(t('colPriceForFmt', { name: p.name + ' · ' + p.grade }))}</span>`).join('') +
     `<span></span>`;
 }
 function renderColumnsTable() {
@@ -867,24 +1001,50 @@ function updateColumn(i, j, val) {
 function removeColumn(i) { settings.columns.splice(i, 1); saveSettings(); renderColumnsTable(); calc(); }
 function addColumn() { settings.columns.push({ h: 0, prices: settings.columnProfiles.map(() => 0) }); saveSettings(); renderColumnsTable(); }
 
-function renderBeamsTable(len) {
-  const arr = settings['beams' + len];
-  const el = document.getElementById('beams' + len + '-table-body');
-  el.innerHTML = arr.map((b, i) => `
-    <div class="settings-row">
-      <input type="text" value="${b.spec}" oninput="updateBeam('${len}',${i},'spec',this.value)" placeholder="${t('articlePlaceholder')}">
-      <input type="number" value="${b.load}" oninput="updateBeam('${len}',${i},'load',this.value)" placeholder="${t('loadPlaceholder')}">
-      <input type="number" step="0.0001" value="${b.price}" oninput="updateBeam('${len}',${i},'price',this.value)" placeholder="${t('pricePlaceholder')}">
-      <button class="btn-remove-pair" onclick="removeBeam('${len}',${i})">✕</button>
+// ── Балки (единая таблица: длина, серия, поддоны, артикул, нагрузка, цена) ──
+function beamsGridTemplate() {
+  return `90px 100px 90px minmax(120px,1fr) 110px 110px 40px`;
+}
+function renderBeamsHeader() {
+  const el = document.getElementById('beams-table-header');
+  el.style.gridTemplateColumns = beamsGridTemplate();
+  el.innerHTML =
+    `<span>${escapeHtml(t('beamLengthHeader'))}</span>` +
+    `<span>${escapeHtml(t('beamGradeHeader'))}</span>` +
+    `<span>${escapeHtml(t('beamPalletsHeader'))}</span>` +
+    `<span>${escapeHtml(t('articleHeader'))}</span>` +
+    `<span>${escapeHtml(t('loadHeader'))}</span>` +
+    `<span>${escapeHtml(t('priceHeader'))}</span>` +
+    `<span></span>`;
+}
+function renderBeamsTable() {
+  const el = document.getElementById('beams-table-body');
+  const tmpl = beamsGridTemplate();
+  el.innerHTML = settings.beams.map((b, i) => `
+    <div class="settings-row" style="grid-template-columns:${tmpl}">
+      <input type="number" value="${b.length}" oninput="updateBeam(${i},'length',this.value)" placeholder="${t('beamLengthPlaceholder')}">
+      ${gradeSelectHtml(b.grade, `updateBeam(${i},'grade',this.value)`)}
+      <input type="number" value="${b.pallets}" oninput="updateBeam(${i},'pallets',this.value)" placeholder="${t('beamPalletsPlaceholder')}">
+      <input type="text" value="${escapeHtml(b.spec)}" oninput="updateBeam(${i},'spec',this.value)" placeholder="${t('articlePlaceholder')}">
+      <input type="number" value="${b.load}" oninput="updateBeam(${i},'load',this.value)" placeholder="${t('loadPlaceholder')}">
+      <input type="number" step="0.0001" value="${b.price}" oninput="updateBeam(${i},'price',this.value)" placeholder="${t('pricePlaceholder')}">
+      <button class="btn-remove-pair" onclick="removeBeam(${i})">✕</button>
     </div>`).join('');
 }
-function updateBeam(len, i, field, val) {
-  const arr = settings['beams' + len];
-  arr[i][field] = field === 'spec' ? val : (parseFloat(val) || 0);
-  saveSettings(); calc();
+function updateBeam(i, field, val) {
+  const b = settings.beams[i];
+  if (field === 'spec' || field === 'grade') b[field] = val;
+  else b[field] = parseFloat(val) || 0;
+  saveSettings();
+  // Смена длины/серии меняет доступные длины в рядах
+  if (field === 'length' || field === 'grade') renderRows();
+  calc();
 }
-function removeBeam(len, i) { settings['beams' + len].splice(i, 1); saveSettings(); renderBeamsTable(len); calc(); }
-function addBeam(len) { settings['beams' + len].push({ spec: t('newArticleDefault'), load: 0, price: 0 }); saveSettings(); renderBeamsTable(len); }
+function removeBeam(i) { settings.beams.splice(i, 1); saveSettings(); renderBeamsTable(); renderRows(); calc(); }
+function addBeam() {
+  settings.beams.push({ length: 0, grade: defaultGradeWithData(), pallets: 0, spec: t('newArticleDefault'), load: 0, price: 0 });
+  saveSettings(); renderBeamsTable();
+}
 
 function updateAccessoryPrice(field, val) { settings[field] = parseFloat(val) || 0; saveSettings(); calc(); }
 function updateMarkup(val) { settings.markup = parseFloat(val) || 0; saveSettings(); calc(); }
@@ -898,10 +1058,22 @@ function resetDefaults() {
 }
 
 // ===== РЯДЫ =====
+function newGroup() { return { length: defaultLength(), sections: 0 }; }
+
+// Миграция сохранённого ряда старого формата {sec1900, sec2800} -> {groups[]}
+function migrateSavedRow(r) {
+  if (Array.isArray(r.groups)) return r;
+  const groups = [];
+  if (r.sec1900) groups.push({ length: 1900, sections: r.sec1900 });
+  if (r.sec2800) groups.push({ length: 2800, sections: r.sec2800 });
+  if (!groups.length) groups.push(newGroup());
+  return { id: r.id, name: r.name, isCustomName: r.isCustomName, groups };
+}
+
 function addRow() {
   rowIdCounter++;
   const id = rowIdCounter;
-  rows.push({ id, name: `${t('defaultRowName')} ${id}`, isCustomName: false, sec1900: 0, sec2800: 0 });
+  rows.push({ id, name: `${t('defaultRowName')} ${id}`, isCustomName: false, groups: [newGroup()] });
   renderRows();
   updatePairSelects();
   calc();
@@ -917,12 +1089,16 @@ function removeRow(id) {
 }
 
 function renderRows() {
-  rows.forEach(r => { if (!r.isCustomName) r.name = `${t('defaultRowName')} ${r.id}`; });
+  rows.forEach(r => {
+    if (!r.isCustomName) r.name = `${t('defaultRowName')} ${r.id}`;
+    if (!Array.isArray(r.groups)) r.groups = [newGroup()];
+  });
   const container = document.getElementById('rows-container');
   if (rows.length === 0) {
     container.innerHTML = `<div style="color:var(--muted);font-size:0.8rem;margin-bottom:16px;padding:16px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center">${t('rowsEmptyHint')}</div>`;
     return;
   }
+  const lengths = availableLengths(getSelectedGrade());
   container.innerHTML = rows.map((r, idx) => `
     <div class="row-card" id="row-card-${r.id}">
       <div class="row-card-header">
@@ -931,26 +1107,33 @@ function renderRows() {
           oninput="updateRowName(${r.id}, this.value)">
         <button class="btn-remove" onclick="removeRow(${r.id})">${t('removeRowBtn')}</button>
       </div>
-      <div class="row-fields">
-        <div class="sec-block">
-          <div class="sec-block-title">${t('beam1900TitleShort')}</div>
+      ${lengths.length === 0
+        ? `<div class="hint">${t('noLengthsHint')}</div>`
+        : r.groups.map((g, gi) => `
+        <div class="pair-row" style="grid-template-columns:1fr 1fr auto">
+          <div class="field" style="margin:0">
+            <label>${t('groupLengthLabel')}</label>
+            <select onchange="updateGroup(${r.id},${gi},'length',this.value)">
+              ${lengthOptionsHtml(lengths, g.length)}
+            </select>
+          </div>
           <div class="field" style="margin:0">
             <label>${t('sectionsLabel')}</label>
-            <input type="number" min="0" value="${r.sec1900}" placeholder="0"
-              oninput="updateRow(${r.id},'sec1900',this.value)">
+            <input type="number" min="0" value="${g.sections}" placeholder="0"
+              oninput="updateGroup(${r.id},${gi},'sections',this.value)">
           </div>
-        </div>
-        <div class="sec-block">
-          <div class="sec-block-title">${t('beam2800TitleShort')}</div>
-          <div class="field" style="margin:0">
-            <label>${t('sectionsLabel')}</label>
-            <input type="number" min="0" value="${r.sec2800}" placeholder="0"
-              oninput="updateRow(${r.id},'sec2800',this.value)">
-          </div>
-        </div>
-      </div>
+          <button class="btn-remove-pair" onclick="removeGroup(${r.id},${gi})" ${r.groups.length <= 1 ? 'disabled style="opacity:0.3"' : ''}>✕</button>
+        </div>`).join('')}
+      ${lengths.length === 0 ? '' : `<button class="btn-add-pair" onclick="addGroup(${r.id})">${t('addGroupBtn')}</button>`}
     </div>
   `).join('');
+}
+
+function lengthOptionsHtml(lengths, current) {
+  const opts = lengths.slice();
+  if (current !== '' && current != null && !opts.includes(Number(current))) opts.push(Number(current));
+  return opts.sort((a, b) => a - b)
+    .map(L => `<option value="${L}"${Number(current) === L ? ' selected' : ''}>L=${L}</option>`).join('');
 }
 
 function updateRowName(id, val) {
@@ -959,9 +1142,26 @@ function updateRowName(id, val) {
   updatePairSelects();
 }
 
-function updateRow(id, field, val) {
+function updateGroup(id, gi, field, val) {
   const r = rows.find(r => r.id === id);
-  if (r) r[field] = parseInt(val) || 0;
+  if (!r || !r.groups[gi]) return;
+  r.groups[gi][field] = field === 'sections' ? (parseInt(val) || 0) : (parseFloat(val) || 0);
+  calc();
+}
+
+function addGroup(id) {
+  const r = rows.find(r => r.id === id);
+  if (!r) return;
+  r.groups.push(newGroup());
+  renderRows();
+  calc();
+}
+
+function removeGroup(id, gi) {
+  const r = rows.find(r => r.id === id);
+  if (!r || r.groups.length <= 1) return;
+  r.groups.splice(gi, 1);
+  renderRows();
   calc();
 }
 
@@ -1046,15 +1246,14 @@ function calc() {
     totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
 
+  const selectedGrade = getSelectedGrade();
   const markupMult = 1 + ((settings.markup || 0) / 100);
-  const columnsSorted   = [...settings.columns].sort((a, b) => a.h - b.h);
-  const beams1900Sorted = [...settings.beams1900].sort((a, b) => a.load - b.load);
-  const beams2800Sorted = [...settings.beams2800].sort((a, b) => a.load - b.load);
+  const columnsSorted = [...settings.columns].sort((a, b) => a.h - b.h);
 
   const warnings = [];
   const shelves = tiers === 1 ? 2 : tiers;
 
-  // Подбор стойки
+  // Высота стойки
   const col = columnsSorted.find(c => c.h >= height);
   if (!col) {
     const maxH = columnsSorted.length ? columnsSorted[columnsSorted.length - 1].h : 0;
@@ -1062,46 +1261,68 @@ function calc() {
     warn.classList.add('visible'); grid.innerHTML = ''; totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
 
-  // Подбор балок
-  const beam1 = beams1900Sorted.find(b => b.load >= weight);
-  const beam2 = beams2800Sorted.find(b => b.load >= weight);
-  if (!beam1 && beams1900Sorted.length) warnings.push(t('noBeamWarning', { len: '1900', weight, max: beams1900Sorted[beams1900Sorted.length-1].load }));
-  if (!beam2 && beams2800Sorted.length) warnings.push(t('noBeamWarning', { len: '2800', weight, max: beams2800Sorted[beams2800Sorted.length-1].load }));
+  const fmt  = n => n.toFixed(2).replace('.', ',');
+  const fmtT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-  // Считаем по каждому ряду
-  let totalColumns = 0, totalB1900 = 0, totalB2800 = 0;
+  // Проходим по рядам и группам: считаем стойки, подбираем балки для каждой длины (в рамках серии)
+  let totalColumns = 0;
+  let maxPallets = 0;
+  const beamAgg = new Map();       // ключ -> { qty, unitBase, spec, load, length }
+  const warnedLengths = new Set();
+  const warnedCover = new Set();
 
   rows.forEach(r => {
-    const secs = (r.sec1900 || 0) + (r.sec2800 || 0);
+    const secs = rowSections(r);
     if (secs < 1) return;
     totalColumns += secs + 1;
-    totalB1900   += (r.sec1900 || 0) * shelves * 2;
-    totalB2800   += (r.sec2800 || 0) * shelves * 2;
+    (r.groups || []).forEach(g => {
+      const gs = parseInt(g.sections) || 0;
+      if (gs < 1) return;
+      const lengthBeams = (settings.beams || [])
+        .filter(b => b.grade === selectedGrade && b.length === Number(g.length))
+        .sort((a, b) => a.load - b.load);
+      const wkey = `${selectedGrade}|${g.length}`;
+      if (!lengthBeams.length) {
+        if (!warnedLengths.has(wkey)) { warnings.push(t('noBeamsForLengthWarning', { length: g.length, grade: selectedGrade })); warnedLengths.add(wkey); }
+        return;
+      }
+      let chosenBeam = lengthBeams.find(b => b.load >= weight);
+      if (!chosenBeam) {
+        chosenBeam = lengthBeams[lengthBeams.length - 1];
+        if (!warnedCover.has(wkey)) { warnings.push(t('noBeamWarning', { length: g.length, grade: selectedGrade, weight, max: chosenBeam.load })); warnedCover.add(wkey); }
+      }
+      maxPallets = Math.max(maxPallets, chosenBeam.pallets || 0);
+      const qty = gs * shelves * 2;
+      const key = `${chosenBeam.length}|${chosenBeam.spec}|${chosenBeam.load}`;
+      const cur = beamAgg.get(key) || { qty: 0, unitBase: chosenBeam.price, spec: chosenBeam.spec, load: chosenBeam.load, length: chosenBeam.length };
+      cur.qty += qty;
+      beamAgg.set(key, cur);
+    });
   });
 
-  // Тип стойки: берём по максимальной нагрузке среди всех рядов
-  const maxPallets = rows.reduce((m, r) => {
-    const p = Math.max(r.sec1900 > 0 ? 2 : 0, r.sec2800 > 0 ? 3 : 0);
-    return Math.max(m, p);
-  }, 0);
+  // Профиль стойки: среди профилей выбранной серии — самый лёгкий, чья макс. нагрузка ≥ нагрузки на стойку
   const loadPerCol = shelves * weight * maxPallets;
-  // Подбор профиля стойки: самый лёгкий, чья макс. нагрузка ≥ нагрузки на стойку
-  const profileOrder = (settings.columnProfiles || []).map((p, i) => ({ p, i })).sort((a, b) => a.p.maxLoad - b.p.maxLoad);
-  let chosen = profileOrder.find(o => loadPerCol <= o.p.maxLoad);
-  if (!chosen && profileOrder.length) {
-    chosen = profileOrder[profileOrder.length - 1];
-    warnings.push(t('colLoadWarning', { load: Math.round(loadPerCol), max: chosen.p.maxLoad }));
-  }
+  const profileOrder = (settings.columnProfiles || [])
+    .map((p, i) => ({ p, i }))
+    .filter(o => o.p.grade === selectedGrade)
+    .sort((a, b) => a.p.maxLoad - b.p.maxLoad);
   let colSpec = '', colPriceBase = 0;
-  if (chosen) {
-    colSpec = t('colSpecFmt', { name: chosen.p.name, load: chosen.p.maxLoad });
+  if (!profileOrder.length) {
+    if (totalColumns > 0) warnings.push(t('noProfilesForGradeWarning', { grade: selectedGrade }));
+  } else {
+    let chosen = profileOrder.find(o => loadPerCol <= o.p.maxLoad);
+    if (!chosen) {
+      chosen = profileOrder[profileOrder.length - 1];
+      warnings.push(t('colLoadWarning', { load: Math.round(loadPerCol), max: chosen.p.maxLoad }));
+    }
+    colSpec = `${t('colSpecFmt', { name: chosen.p.name, load: chosen.p.maxLoad })} · ${selectedGrade}`;
     colPriceBase = (col.prices && col.prices[chosen.i]) || 0;
   }
   const colPrice = colPriceBase * markupMult;
 
   // Аксессуары
   const numCorners  = addCorners  ? totalColumns * cornersPerCol : 0;
-  const rowsWithSections = rows.filter(r => (r.sec1900+r.sec2800) > 0).length;
+  const rowsWithSections = rows.filter(r => rowSections(r) > 0).length;
   const numBarriers = addBarriers ? rowsWithSections * barriersPerRow : 0;
 
   // Распорки по парам
@@ -1111,10 +1332,8 @@ function calc() {
     const rA = rows.find(r => r.id === p.rowA);
     const rB = rows.find(r => r.id === p.rowB);
     if (!rA || !rB || p.rowA === p.rowB) return;
-    // Стойки пары = стойки ряда А + стойки ряда Б (у них общие стойки если спина к спине)
-    // Распорки ставятся между стойками: кол-во стоек = max(secsA, secsB) + 1
-    const secsA = (rA.sec1900||0) + (rA.sec2800||0);
-    const secsB = (rB.sec1900||0) + (rB.sec2800||0);
+    const secsA = rowSections(rA);
+    const secsB = rowSections(rB);
     const pairCols = Math.max(secsA, secsB) + 1;
     const n = pairCols * p.bracesPerCol;
     totalBraces += n;
@@ -1122,63 +1341,51 @@ function calc() {
   });
 
   // Цены за единицу (с наценкой)
-  const beam1Price   = (beam1 ? beam1.price : 0) * markupMult;
-  const beam2Price   = (beam2 ? beam2.price : 0) * markupMult;
   const cornerPrice  = settings.cornerPrice * markupMult;
   const barrierPrice = settings.barrierPrice * markupMult;
   const bracePrice   = settings.bracePrice * markupMult;
-
-  // Стоимости
-  const costCols     = totalColumns * colPrice;
-  const costB1900    = totalB1900 * beam1Price;
-  const costB2800    = totalB2800 * beam2Price;
-  const costCorners  = numCorners  * cornerPrice;
-  const costBarriers = numBarriers * barrierPrice;
-  const costBraces   = totalBraces * bracePrice;
-  const total = costCols + costB1900 + costB2800 + costCorners + costBarriers + costBraces;
-
-  if (warnings.length) { warn.innerHTML = warnings.join('<br>'); warn.classList.add('visible'); }
-
-  const fmt  = n => n.toFixed(2).replace('.', ',');
-  const fmtT = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
   const items = [];
 
   if (totalColumns > 0) items.push({
     qty: totalColumns, name: t('itemColumns'),
-    spec: `${colSpec}<br>${t('specHeight', { h: col.h })}`,
-    price: costCols, up: colPrice
+    spec: `${colSpec || '—'}<br>${t('specHeight', { h: col.h })}`,
+    price: totalColumns * colPrice, up: colPrice
   });
-  if (totalB1900 > 0 && beam1) items.push({
-    qty: totalB1900, name: t('itemBeam1900'),
-    spec: `${beam1.spec}<br>${t('specUpTo', { load: beam1.load })}`,
-    price: costB1900, up: beam1Price
+
+  [...beamAgg.values()].sort((a, b) => (a.length - b.length) || (a.load - b.load)).forEach(b => {
+    const up = b.unitBase * markupMult;
+    items.push({
+      qty: b.qty, name: t('itemBeamFmt', { length: b.length }),
+      spec: `${escapeHtml(b.spec)} · ${selectedGrade}<br>${t('specUpTo', { load: b.load })}`,
+      price: b.qty * up, up
+    });
   });
-  if (totalB2800 > 0 && beam2) items.push({
-    qty: totalB2800, name: t('itemBeam2800'),
-    spec: `${beam2.spec}<br>${t('specUpTo', { load: beam2.load })}`,
-    price: costB2800, up: beam2Price
-  });
+
   if (addCorners && numCorners > 0) items.push({
     qty: numCorners, name: t('itemCorners'),
     spec: `${t('specCornerTech')}<br>${t('specCornerCount', { cols: totalColumns, n: cornersPerCol })}`,
-    price: costCorners, up: cornerPrice
+    price: numCorners * cornerPrice, up: cornerPrice
   });
   if (addBarriers && numBarriers > 0) items.push({
     qty: numBarriers, name: t('itemBarriers'),
     spec: `${t('specBarrierTech')}<br>${t('specBarrierCount', { rows: rowsWithSections, n: barriersPerRow })}`,
-    price: costBarriers, up: barrierPrice
+    price: numBarriers * barrierPrice, up: barrierPrice
   });
   if (totalBraces > 0) items.push({
     qty: totalBraces, name: t('itemBraces'),
     spec: `${t('specBraceTech')}<br>${bracesDetail.join('<br>')}`,
-    price: costBraces, up: bracePrice
+    price: totalBraces * bracePrice, up: bracePrice
   });
+
+  if (warnings.length) { warn.innerHTML = warnings.join('<br>'); warn.classList.add('visible'); }
 
   if (items.length === 0) {
     grid.innerHTML = `<div style="color:var(--muted);font-size:0.82rem;grid-column:1/-1">${t('addSectionsHint')}</div>`;
     totBlk.style.display = 'none'; pdfBtn.disabled = true; lastResult = null; return;
   }
+
+  const total = items.reduce((s, it) => s + it.price, 0);
 
   const pieceUnit = t('pieceUnit');
   grid.innerHTML = items.map(it => `
@@ -1189,9 +1396,10 @@ function calc() {
       <div class="price-line">${fmt(it.up)} × ${it.qty} = ${fmt(it.price)} USD</div>
     </div>`).join('');
 
-  const rowsSummary = rows.filter(r=>(r.sec1900+r.sec2800)>0)
-    .map(r => t('rowsSummaryLine', { name: r.name, n1: r.sec1900||0, n2: r.sec2800||0 })).join(' · ');
-  const totalNoteText = t('totalNote', { rows: rows.length, tiers, shelves, h: col.h });
+  const rowsSummary = rows.filter(r => rowSections(r) > 0)
+    .map(r => `${r.name}: ` + (r.groups || []).filter(g => (parseInt(g.sections) || 0) > 0)
+      .map(g => `${g.sections}×L${g.length}`).join(' + ')).join(' · ');
+  const totalNoteText = t('totalNote', { grade: selectedGrade, rows: rows.length, tiers, shelves, h: col.h });
 
   document.getElementById('total_amount').innerHTML = `${fmtT(total)} <span>USD EXW</span>`;
   document.getElementById('total_note').innerHTML = `${totalNoteText}<br>${rowsSummary}`;
@@ -1291,6 +1499,7 @@ async function saveCalculation() {
     addCorners: document.getElementById('add_corners').checked,
     barriersPerRow: document.getElementById('barriers_per_row').value,
     cornersPerCol: document.getElementById('corners_per_col').value,
+    steelGrade: getSelectedGrade(),
     rows, pairs
   };
   const { error } = await supabaseClient.from('rack_calculations').insert({ name, data: payload });
@@ -1327,7 +1536,8 @@ async function loadCalculation(id) {
   document.getElementById('add_corners').checked = d.addCorners;
   document.getElementById('barriers_per_row').value = d.barriersPerRow;
   document.getElementById('corners_per_col').value = d.cornersPerCol;
-  rows = d.rows || [];
+  if (d.steelGrade && gradesList().includes(d.steelGrade)) document.getElementById('steel_grade').value = d.steelGrade;
+  rows = (d.rows || []).map(migrateSavedRow);
   pairs = d.pairs || [];
   rowIdCounter = rows.reduce((m, r) => Math.max(m, r.id), 0);
   pairIdCounter = pairs.reduce((m, p) => Math.max(m, p.id), 0);
