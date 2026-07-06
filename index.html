@@ -270,11 +270,20 @@
         <button class="btn-remove" onclick="logoutAdmin()" id="i18n-logout-btn">Выйти</button>
       </div>
 
-      <div class="settings-block-title" id="i18n-columns-title">Стойки (по высоте)</div>
-      <div class="settings-header">
-        <span id="i18n-col-height-header">Высота, мм</span><span id="i18n-col-p90-header">Цена 90×70, USD</span><span id="i18n-col-p100-header">Цена 100×70, USD</span><span></span>
+      <div class="settings-block-title" id="i18n-profiles-title">Профили стоек (сечение)</div>
+      <div class="settings-header" style="grid-template-columns:1fr 1fr auto">
+        <span id="i18n-profile-name-header">Сечение</span><span id="i18n-profile-load-header">Макс. нагрузка, кг</span><span></span>
       </div>
-      <div id="columns-table-body"></div>
+      <div id="profiles-table-body"></div>
+      <button class="btn-add-pair" id="btn-add-profile" onclick="addProfile()">+ Добавить профиль</button>
+
+      <div class="divider"></div>
+
+      <div class="settings-block-title" id="i18n-columns-title">Стойки (по высоте)</div>
+      <div style="overflow-x:auto">
+        <div class="settings-header" id="columns-table-header"></div>
+        <div id="columns-table-body"></div>
+      </div>
       <button class="btn-add-pair" id="btn-add-column" onclick="addColumn()">+ Добавить высоту стойки</button>
 
       <div class="divider"></div>
@@ -366,9 +375,17 @@ const I18N = {
     addSectionsHint: 'Добавьте секции в ряды',
     totalLabel: 'Итого EXW',
     settingsTitle: 'Настройки цен и размеров',
-    settingsHint: 'Здесь можно изменить цены и характеристики деталей, а также добавить новые высоты стоек и артикулы балок. Изменения сохраняются автоматически и сразу применяются в расчёте.',
+    settingsHint: 'Здесь можно изменить цены и характеристики деталей, а также добавить новые профили (сечения) и высоты стоек, артикулы балок. Профиль стойки для расчёта подбирается автоматически по нагрузке. Изменения сохраняются автоматически.',
+    profilesSectionTitle: 'Профили стоек (сечение)',
+    profileNameHeader: 'Сечение', profileLoadHeader: 'Макс. нагрузка, кг',
+    addProfileBtn: '+ Добавить профиль',
+    profileNamePlaceholder: 'Напр. 120×90-2.0мм', profileLoadPlaceholder: 'Макс. нагрузка, кг',
+    newProfileDefault: 'Новый профиль',
+    profileMinWarning: 'Должен остаться хотя бы один профиль стойки.',
+    colPriceForFmt: 'Цена {name}, USD',
+    colSpecFmt: '{name} (до {load} кг)',
     columnsSectionTitle: 'Стойки (по высоте)',
-    colHeightHeader: 'Высота, мм', colP90Header: 'Цена 90×70, USD', colP100Header: 'Цена 100×70, USD',
+    colHeightHeader: 'Высота, мм',
     addColumnBtn: '+ Добавить высоту стойки',
     beam1900Title: 'Балки L=1900 мм (2 поддона)',
     beam2800Title: 'Балки L=2800 мм (3 поддона)',
@@ -381,14 +398,12 @@ const I18N = {
     resetBtn: 'Сбросить все настройки к заводским',
     resetConfirm: 'Сбросить все цены и размеры к заводским значениям? Наценка тоже будет обнулена.',
     newArticleDefault: 'Новый артикул',
-    colHeightPlaceholder: 'Высота, мм', colP90Placeholder: 'Цена 90×70', colP100Placeholder: 'Цена 100×70',
+    colHeightPlaceholder: 'Высота, мм',
     articlePlaceholder: 'Артикул', loadPlaceholder: 'Нагрузка, кг', pricePlaceholder: 'Цена',
     pdfNotLoaded: 'Не удалось загрузить библиотеку формирования PDF. Проверьте подключение к интернету и обновите страницу.',
     heightExceeds: 'Высота {h} мм превышает максимум {max} мм.',
     noBeamWarning: '⚠ L={len}: нет балки ≥ {weight} кг/поддон. Макс: {max} кг.',
-    colLoadWarning: '⚠ Нагрузка на стойку ~{load} кг > 11000 кг — уточните у поставщика.',
-    colSpec90: 'Стойка 90×70-2.0мм (до 8000 кг)',
-    colSpec100: 'Стойка 100×70-2.0мм (до 11000 кг)',
+    colLoadWarning: '⚠ Нагрузка на стойку ~{load} кг превышает макс. профиль {max} кг — уточните у поставщика.',
     itemColumns: 'Стойки', itemBeam1900: 'Балки L=1900', itemBeam2800: 'Балки L=2800',
     itemCorners: 'Уголки L-образные', itemBarriers: 'Защитные барьеры', itemBraces: 'Распорки',
     specHeight: 'H={h} мм', specUpTo: 'до {load} кг/поддон',
@@ -462,9 +477,17 @@ const I18N = {
     addSectionsHint: '请在排中添加节数',
     totalLabel: 'EXW 总计',
     settingsTitle: '价格和尺寸设置',
-    settingsHint: '在这里可以修改各部件的价格和参数，也可以添加新的立柱高度和横梁型号。更改会自动保存并立即应用到计算中。',
+    settingsHint: '在这里可以修改各部件的价格和参数，也可以添加新的立柱型材（截面）、高度和横梁型号。计算时会根据承重自动选择立柱型材。更改会自动保存。',
+    profilesSectionTitle: '立柱型材（截面）',
+    profileNameHeader: '截面', profileLoadHeader: '最大承重，kg',
+    addProfileBtn: '+ 添加型材',
+    profileNamePlaceholder: '例如 120×90-2.0mm', profileLoadPlaceholder: '最大承重，kg',
+    newProfileDefault: '新型材',
+    profileMinWarning: '至少需要保留一个立柱型材。',
+    colPriceForFmt: '价格 {name}，USD',
+    colSpecFmt: '{name}（最大{load}kg）',
     columnsSectionTitle: '立柱（按高度）',
-    colHeightHeader: '高度，mm', colP90Header: '价格 90×70，USD', colP100Header: '价格 100×70，USD',
+    colHeightHeader: '高度，mm',
     addColumnBtn: '+ 添加立柱高度',
     beam1900Title: '横梁 L=1900 mm（2托盘）',
     beam2800Title: '横梁 L=2800 mm（3托盘）',
@@ -477,14 +500,12 @@ const I18N = {
     resetBtn: '恢复出厂设置',
     resetConfirm: '确定要将所有价格和尺寸恢复为出厂默认值吗？加价比例也将被清零。',
     newArticleDefault: '新型号',
-    colHeightPlaceholder: '高度，mm', colP90Placeholder: '价格 90×70', colP100Placeholder: '价格 100×70',
+    colHeightPlaceholder: '高度，mm',
     articlePlaceholder: '型号', loadPlaceholder: '承重，kg', pricePlaceholder: '价格',
     pdfNotLoaded: '无法加载PDF生成库。请检查网络连接并刷新页面。',
     heightExceeds: '高度 {h} mm 超过最大值 {max} mm。',
     noBeamWarning: '⚠ L={len}：没有承重 ≥ {weight} kg/托盘 的横梁。最大：{max} kg。',
-    colLoadWarning: '⚠ 立柱承重约 {load} kg > 11000 kg — 请与供应商确认。',
-    colSpec90: '立柱 90×70-2.0mm（最大8000kg）',
-    colSpec100: '立柱 100×70-2.0mm（最大11000kg）',
+    colLoadWarning: '⚠ 立柱承重约 {load} kg 超过最大型材 {max} kg — 请与供应商确认。',
     itemColumns: '立柱', itemBeam1900: '横梁 L=1900', itemBeam2800: '横梁 L=2800',
     itemCorners: 'L型护角', itemBarriers: '防护栏', itemBraces: '撑杆',
     specHeight: 'H={h} mm', specUpTo: '最大 {load} kg/托盘',
@@ -540,8 +561,10 @@ const STATIC_TEXT_MAP = {
   'i18n-corners-label': 'cornersLabel', 'i18n-acc-hint': 'accessoriesHint',
   'i18n-result-title': 'resultTitle', 'btn-pdf': 'pdfBtn', 'i18n-total-label': 'totalLabel',
   'i18n-settings-title': 'settingsTitle', 'i18n-settings-hint': 'settingsHint',
+  'i18n-profiles-title': 'profilesSectionTitle',
+  'i18n-profile-name-header': 'profileNameHeader', 'i18n-profile-load-header': 'profileLoadHeader',
+  'btn-add-profile': 'addProfileBtn',
   'i18n-columns-title': 'columnsSectionTitle',
-  'i18n-col-height-header': 'colHeightHeader', 'i18n-col-p90-header': 'colP90Header', 'i18n-col-p100-header': 'colP100Header',
   'btn-add-column': 'addColumnBtn',
   'i18n-beams1900-title': 'beam1900Title',
   'i18n-beams1900-article-header': 'articleHeader', 'i18n-beams1900-load-header': 'loadHeader', 'i18n-beams1900-price-header': 'priceHeader',
@@ -597,6 +620,8 @@ function setLang(newLang) {
   applyStaticText();
   renderRows();
   renderPairs();
+  renderProfilesTable();
+  renderColumnsHeader();
   renderColumnsTable();
   renderBeamsTable('1900');
   renderBeamsTable('2800');
@@ -652,7 +677,7 @@ function updateAuthUI() {
   loginForm.style.display = loggedIn ? 'none' : '';
   loggedInRow.style.display = loggedIn ? '' : 'none';
   if (loggedIn) document.getElementById('admin-logged-in-text').textContent = t('loggedInAs', { email: currentUser.email });
-  document.querySelectorAll('#tab-settings input, #tab-settings .settings-row button, #btn-add-column, #btn-add-beam1900, #btn-add-beam2800, #btn-reset-defaults').forEach(el => {
+  document.querySelectorAll('#tab-settings input, #tab-settings .settings-row button, #btn-add-profile, #btn-add-column, #btn-add-beam1900, #btn-add-beam2800, #btn-reset-defaults').forEach(el => {
     if (el.id === 'admin-email' || el.id === 'admin-password') return;
     el.disabled = !loggedIn;
   });
@@ -674,13 +699,17 @@ const FACTORY_DEFAULTS = {
     { spec: 'BH12050-1.5', load: 800,  price: 11.6490 },
     { spec: 'BH14050-1.5', load: 1150, price: 12.9583 },
   ],
+  columnProfiles: [
+    { name: '90×70-2.0мм',  maxLoad: 8000 },
+    { name: '100×70-2.0мм', maxLoad: 11000 },
+  ],
   columns: [
-    { h: 3000, p90: 25.9571, p100: 28.3826 },
-    { h: 4050, p90: 33.3083, p100: 36.1215 },
-    { h: 5025, p90: 41.0310, p100: 44.4689 },
-    { h: 6000, p90: 48.7164, p100: 52.7335 },
-    { h: 7050, p90: 56.0237, p100: 60.4724 },
-    { h: 8025, p90: 63.7903, p100: 68.8198 },
+    { h: 3000, prices: [25.9571, 28.3826] },
+    { h: 4050, prices: [33.3083, 36.1215] },
+    { h: 5025, prices: [41.0310, 44.4689] },
+    { h: 6000, prices: [48.7164, 52.7335] },
+    { h: 7050, prices: [56.0237, 60.4724] },
+    { h: 8025, prices: [63.7903, 68.8198] },
   ],
   cornerPrice: 3.1524,
   barrierPrice: 11.5857,
@@ -690,13 +719,36 @@ const FACTORY_DEFAULTS = {
 
 const STORAGE_KEY = 'rackCalcSettings_v1';
 function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+// Приводит настройки к актуальной структуре (миграция со старого формата стоек p90/p100)
+function normalizeSettings(s) {
+  if (!Array.isArray(s.columnProfiles) || s.columnProfiles.length === 0) {
+    s.columnProfiles = clone(FACTORY_DEFAULTS.columnProfiles);
+  }
+  const n = s.columnProfiles.length;
+  if (Array.isArray(s.columns)) {
+    s.columns = s.columns.map(c => {
+      let prices;
+      if (Array.isArray(c.prices)) {
+        prices = c.prices.slice(0, n);
+      } else {
+        // старый формат { h, p90, p100 }
+        prices = [c.p90 || 0, c.p100 || 0].slice(0, n);
+      }
+      while (prices.length < n) prices.push(0);
+      return { h: c.h || 0, prices };
+    });
+  }
+  return s;
+}
 
 function loadSettings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return clone(FACTORY_DEFAULTS);
     const parsed = JSON.parse(raw);
-    return Object.assign(clone(FACTORY_DEFAULTS), parsed);
+    return normalizeSettings(Object.assign(clone(FACTORY_DEFAULTS), parsed));
   } catch (e) {
     return clone(FACTORY_DEFAULTS);
   }
@@ -714,7 +766,7 @@ async function fetchRemoteSettings() {
   try {
     const { data, error } = await supabaseClient.from('rack_settings').select('data').eq('id', 1).single();
     if (!error && data && data.data) {
-      settings = Object.assign(clone(FACTORY_DEFAULTS), data.data);
+      settings = normalizeSettings(Object.assign(clone(FACTORY_DEFAULTS), data.data));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
       renderSettingsTab();
       calc();
@@ -743,6 +795,8 @@ function showTab(name) {
 
 // ===== НАСТРОЙКИ ЦЕН =====
 function renderSettingsTab() {
+  renderProfilesTable();
+  renderColumnsHeader();
   renderColumnsTable();
   renderBeamsTable('1900');
   renderBeamsTable('2800');
@@ -752,20 +806,66 @@ function renderSettingsTab() {
   document.getElementById('set_markup').value = settings.markup;
 }
 
+// ── Профили стоек (сечения) ──
+function renderProfilesTable() {
+  const el = document.getElementById('profiles-table-body');
+  el.innerHTML = settings.columnProfiles.map((p, i) => `
+    <div class="settings-row" style="grid-template-columns:1fr 1fr auto">
+      <input type="text" value="${escapeHtml(p.name)}" oninput="updateProfile(${i},'name',this.value)" placeholder="${t('profileNamePlaceholder')}">
+      <input type="number" value="${p.maxLoad}" oninput="updateProfile(${i},'maxLoad',this.value)" placeholder="${t('profileLoadPlaceholder')}">
+      <button class="btn-remove-pair" onclick="removeProfile(${i})">✕</button>
+    </div>`).join('');
+}
+function updateProfile(i, field, val) {
+  settings.columnProfiles[i][field] = field === 'name' ? val : (parseFloat(val) || 0);
+  saveSettings();
+  if (field === 'name') renderColumnsHeader();
+  calc();
+}
+function removeProfile(i) {
+  if (settings.columnProfiles.length <= 1) { alert(t('profileMinWarning')); return; }
+  settings.columnProfiles.splice(i, 1);
+  settings.columns.forEach(c => c.prices.splice(i, 1));
+  saveSettings();
+  renderProfilesTable(); renderColumnsHeader(); renderColumnsTable(); calc();
+}
+function addProfile() {
+  settings.columnProfiles.push({ name: t('newProfileDefault'), maxLoad: 0 });
+  settings.columns.forEach(c => c.prices.push(0));
+  saveSettings();
+  renderProfilesTable(); renderColumnsHeader(); renderColumnsTable();
+}
+
+// ── Стойки по высоте (цена на каждый профиль) ──
+function columnsGridTemplate() {
+  return `120px repeat(${settings.columnProfiles.length}, minmax(110px,1fr)) 40px`;
+}
+function renderColumnsHeader() {
+  const el = document.getElementById('columns-table-header');
+  el.style.gridTemplateColumns = columnsGridTemplate();
+  el.innerHTML = `<span>${escapeHtml(t('colHeightHeader'))}</span>` +
+    settings.columnProfiles.map(p => `<span>${escapeHtml(t('colPriceForFmt', { name: p.name }))}</span>`).join('') +
+    `<span></span>`;
+}
 function renderColumnsTable() {
   const el = document.getElementById('columns-table-body');
+  const tmpl = columnsGridTemplate();
   el.innerHTML = settings.columns.map((c, i) => `
-    <div class="settings-row">
-      <input type="number" value="${c.h}" oninput="updateColumn(${i},'h',this.value)" placeholder="${t('colHeightPlaceholder')}">
-      <input type="number" step="0.0001" value="${c.p90}" oninput="updateColumn(${i},'p90',this.value)" placeholder="${t('colP90Placeholder')}">
-      <input type="number" step="0.0001" value="${c.p100}" oninput="updateColumn(${i},'p100',this.value)" placeholder="${t('colP100Placeholder')}">
+    <div class="settings-row" style="grid-template-columns:${tmpl}">
+      <input type="number" value="${c.h}" oninput="updateColumn(${i},-1,this.value)" placeholder="${t('colHeightPlaceholder')}">
+      ${c.prices.map((pr, j) => `<input type="number" step="0.0001" value="${pr}" oninput="updateColumn(${i},${j},this.value)" placeholder="${t('pricePlaceholder')}">`).join('')}
       <button class="btn-remove-pair" onclick="removeColumn(${i})">✕</button>
     </div>`).join('');
   updateHeightHint();
 }
-function updateColumn(i, field, val) { settings.columns[i][field] = parseFloat(val) || 0; saveSettings(); updateHeightHint(); calc(); }
+function updateColumn(i, j, val) {
+  const num = parseFloat(val) || 0;
+  if (j === -1) settings.columns[i].h = num;
+  else settings.columns[i].prices[j] = num;
+  saveSettings(); updateHeightHint(); calc();
+}
 function removeColumn(i) { settings.columns.splice(i, 1); saveSettings(); renderColumnsTable(); calc(); }
-function addColumn() { settings.columns.push({ h: 0, p90: 0, p100: 0 }); saveSettings(); renderColumnsTable(); }
+function addColumn() { settings.columns.push({ h: 0, prices: settings.columnProfiles.map(() => 0) }); saveSettings(); renderColumnsTable(); }
 
 function renderBeamsTable(len) {
   const arr = settings['beams' + len];
@@ -985,10 +1085,18 @@ function calc() {
     return Math.max(m, p);
   }, 0);
   const loadPerCol = shelves * weight * maxPallets;
-  let colSpec, colPriceBase;
-  if (loadPerCol <= 8000)       { colSpec = t('colSpec90');  colPriceBase = col.p90; }
-  else if (loadPerCol <= 11000) { colSpec = t('colSpec100'); colPriceBase = col.p100; }
-  else { warnings.push(t('colLoadWarning', { load: Math.round(loadPerCol) })); colSpec = t('colSpec100'); colPriceBase = col.p100; }
+  // Подбор профиля стойки: самый лёгкий, чья макс. нагрузка ≥ нагрузки на стойку
+  const profileOrder = (settings.columnProfiles || []).map((p, i) => ({ p, i })).sort((a, b) => a.p.maxLoad - b.p.maxLoad);
+  let chosen = profileOrder.find(o => loadPerCol <= o.p.maxLoad);
+  if (!chosen && profileOrder.length) {
+    chosen = profileOrder[profileOrder.length - 1];
+    warnings.push(t('colLoadWarning', { load: Math.round(loadPerCol), max: chosen.p.maxLoad }));
+  }
+  let colSpec = '', colPriceBase = 0;
+  if (chosen) {
+    colSpec = t('colSpecFmt', { name: chosen.p.name, load: chosen.p.maxLoad });
+    colPriceBase = (col.prices && col.prices[chosen.i]) || 0;
+  }
   const colPrice = colPriceBase * markupMult;
 
   // Аксессуары
